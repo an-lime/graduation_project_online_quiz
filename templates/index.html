@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="ru">
 
@@ -5,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ОНЛАЙН-КВИЗ | Главное меню</title>
-    <link rel="stylesheet" href="../styles/style.css">
+    <link rel="stylesheet" href="{% static "css/style.css" %}">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 
@@ -48,7 +50,7 @@
         </main>
     </div>
 
-    <script src="../scripts/script.js"></script>
+    <script src="../static/js/script.js"></script>
 </body>
 
 </html>

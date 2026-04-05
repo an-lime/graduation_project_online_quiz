@@ -1,0 +1,838 @@
+/* =========================================
+   1. ПЕРЕМЕННЫЕ И БАЗОВЫЕ НАСТРОЙКИ
+   ========================================= */
+:root {
+    --bg-color: #2c0e37;
+    --card-bg: #ffffff;
+    --primary: #ffde59;
+    --primary-hover: #ffcc00;
+    --secondary: #00d2be;
+    --secondary-hover: #00b3a2;
+    --accent-pink: #ff007f;
+    --text-dark: #1a1a1a;
+    --text-light: #ffffff;
+    --text-gray: #777777;
+    --font-main: 'Montserrat', sans-serif;
+    --danger: #ff4757;
+    --success: #2ed573;
+    --warning: #ffa502;
+    --info: #3742fa;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg-color);
+    color: var(--text-dark);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px 0;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* =========================================
+   2. ФОНОВЫЕ ЭЛЕМЕНТЫ
+   ========================================= */
+.bg-shape {
+    position: fixed;
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0.6;
+    filter: blur(50px);
+}
+
+.shape-1 {
+    width: 400px;
+    height: 400px;
+    background: #6a0dad;
+    top: -100px;
+    left: -100px;
+}
+
+.shape-2 {
+    width: 300px;
+    height: 300px;
+    background: var(--accent-pink);
+    bottom: -50px;
+    right: -50px;
+}
+
+/* =========================================
+   3. КОНТЕЙНЕР И ШАПКА
+   ========================================= */
+.container {
+    width: 90%;
+    max-width: 1000px;
+    z-index: 1;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 0 10px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    color: var(--text-light);
+    font-weight: 900;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.logo-icon {
+    font-size: 2.5rem;
+    margin-right: 10px;
+    transform: rotate(-10deg);
+    display: inline-block;
+}
+
+/* =========================================
+   4. КНОПКИ
+   ========================================= */
+.btn {
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: transform 0.1s, box-shadow 0.1s, background-color 0.2s;
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+    margin-left: 10px;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    color: var(--text-dark);
+}
+
+.btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary {
+    background-color: var(--primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+    background-color: var(--secondary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--secondary-hover);
+}
+
+.btn-block {
+    width: 100%;
+    margin: 10px 0;
+    display: block;
+    margin-left: 0;
+}
+
+.btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+    color: #666;
+}
+
+/* =========================================
+   5. КАРТОЧКИ
+   ========================================= */
+.card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    border: 4px solid var(--text-light);
+    position: relative;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin-bottom: 20px;
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.card h2 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: var(--bg-color);
+}
+
+.card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: var(--bg-color);
+}
+
+.card p {
+    color: var(--text-gray);
+    margin-bottom: 10px;
+}
+
+/* =========================================
+   6. ГЛАВНАЯ СТРАНИЦА - ВЫБОР РОЛИ
+   ========================================= */
+.hero-card h2 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: var(--bg-color);
+}
+
+.hero-card p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: #555;
+}
+
+.role-selector {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.role-btn {
+    background: #f0f0f0;
+    border: 3px solid #ddd;
+    border-radius: 15px;
+    padding: 20px;
+    width: 200px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-dark);
+}
+
+.role-btn:hover {
+    transform: translateY(-5px);
+    border-color: var(--bg-color);
+    background: #fff;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.role-btn .icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.role-btn span {
+    font-weight: 900;
+    font-size: 1.2rem;
+    display: block;
+}
+
+.role-btn small {
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    margin-top: 5px;
+}
+
+.host-btn:hover {
+    border-color: var(--accent-pink);
+    color: var(--accent-pink);
+}
+
+.guest-btn:hover {
+    border-color: var(--secondary);
+    color: var(--secondary-hover);
+}
+
+/* =========================================
+   7. ФОРМЫ
+   ========================================= */
+.create-game-form,
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #555;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 15px;
+    border: 3px solid #ddd;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    font-weight: 600;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--secondary);
+    outline: none;
+    background-color: #f9ffff;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: var(--text-gray);
+    font-size: 0.85rem;
+}
+
+.code-generator-box {
+    display: flex;
+    gap: 10px;
+}
+
+.code-generator-box input {
+    flex: 1;
+    text-align: center;
+    font-weight: bold;
+    letter-spacing: 3px;
+    font-size: 1.2rem;
+}
+
+.code-generator-box .btn {
+    margin: 0;
+    width: auto;
+}
+
+.form-actions {
+    margin-top: 30px;
+}
+
+/* =========================================
+   8. ЛОББИ
+   ========================================= */
+.lobby-card {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.lobby-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.lobby-header h2 {
+    color: var(--bg-color);
+    font-size: 1.8rem;
+    margin: 0;
+}
+
+.lobby-status {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--success);
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.code-display {
+    background: var(--bg-color);
+    color: var(--primary);
+    padding: 30px 20px;
+    border-radius: 15px;
+    margin: 30px 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.code-display:hover {
+    transform: scale(1.02);
+}
+
+.code-label {
+    font-size: 1rem;
+    text-transform: uppercase;
+    opacity: 0.8;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.code-value {
+    font-size: 5rem;
+    font-weight: 900;
+    letter-spacing: 10px;
+    text-align: center;
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(255, 222, 89, 0.5);
+}
+
+.lobby-info {
+    color: var(--text-gray);
+    margin-bottom: 30px;
+    font-size: 1rem;
+    line-height: 1.8;
+    text-align: left;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.lobby-info p {
+    margin-bottom: 8px;
+    color: var(--text-dark);
+}
+
+.lobby-info strong {
+    color: var(--accent-pink);
+}
+
+.lobby-actions {
+    margin-bottom: 30px;
+}
+
+.player-list-preview {
+    text-align: left;
+    border-top: 2px solid #eee;
+    padding-top: 20px;
+}
+
+.player-list-preview h4 {
+    color: var(--bg-color);
+    margin-bottom: 15px;
+}
+
+.player-list {
+    list-style: none;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.player-item {
+    padding: 10px 15px;
+    background: #f9f9f9;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.player-item.empty {
+    color: var(--text-gray);
+    justify-content: center;
+    font-style: italic;
+}
+
+/* =========================================
+   9. СПИСОК ИГР
+   ========================================= */
+.games-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 30px 0;
+}
+
+.game-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid #eee;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.game-item:hover {
+    transform: translateX(5px);
+    border-color: var(--secondary);
+}
+
+.game-info {
+    text-align: left;
+    flex: 1;
+}
+
+.game-info h4 {
+    margin-bottom: 8px;
+    color: var(--bg-color);
+    font-size: 1.3rem;
+}
+
+.game-meta {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-badge.live {
+    background: var(--success);
+    color: white;
+}
+
+.status-badge.waiting {
+    background: var(--warning);
+    color: white;
+}
+
+.games-list-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px dashed #ddd;
+    text-align: center;
+}
+
+.games-list-footer p {
+    margin-bottom: 15px;
+}
+
+/* =========================================
+   10. ПРОСМОТР ИГРЫ
+   ========================================= */
+.game-question-card {
+    text-align: center;
+}
+
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #eee;
+}
+
+.question-number {
+    font-weight: bold;
+    color: var(--text-gray);
+    text-transform: uppercase;
+}
+
+.question-timer {
+    font-weight: bold;
+    color: var(--danger);
+    animation: pulse 1s infinite;
+}
+
+.question-text {
+    font-size: 1.8rem;
+    color: var(--bg-color);
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.question-image-placeholder {
+    background: #f0f0f0;
+    border: 3px dashed #ccc;
+    border-radius: 10px;
+    padding: 40px;
+    color: var(--text-gray);
+    margin-top: 20px;
+}
+
+.game-stats-card {
+    text-align: left;
+}
+
+.stats-bars {
+    margin-top: 20px;
+}
+
+.stat-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.stat-label {
+    width: 100px;
+    font-weight: bold;
+    color: var(--text-dark);
+}
+
+.stat-bar-container {
+    flex: 1;
+    background: #eee;
+    border-radius: 10px;
+    height: 35px;
+    overflow: hidden;
+    position: relative;
+}
+
+.stat-bar {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding-left: 15px;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: width 0.5s ease;
+}
+
+.game-leaderboard-card {
+    text-align: left;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.leaderboard-table th {
+    background: var(--bg-color);
+    color: white;
+    padding: 12px;
+    text-align: left;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.leaderboard-table th:first-child {
+    border-radius: 10px 0 0 0;
+}
+
+.leaderboard-table th:last-child {
+    border-radius: 0 10px 0 0;
+}
+
+.leaderboard-table td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #eee;
+    font-weight: 600;
+}
+
+.leaderboard-row.first td {
+    background: #fff9db;
+}
+
+.leaderboard-row.second td {
+    background: #f0f0f0;
+}
+
+.leaderboard-row.third td {
+    background: #fff5e6;
+}
+
+.leaderboard-table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+/* =========================================
+   11. МОДАЛЬНЫЕ ОКНА
+   ========================================= */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+    border: 4px solid var(--primary);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 2.5rem;
+    cursor: pointer;
+    color: #aaa;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.close-modal:hover {
+    color: var(--danger);
+}
+
+/* =========================================
+   12. УТИЛИТЫ И АДАПТИВ
+   ========================================= */
+.hidden {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-20 {
+    margin-top: 20px;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .nav-buttons {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn {
+        margin: 5px 0;
+        width: 100%;
+    }
+
+    .role-selector {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .role-btn {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .code-value {
+        font-size: 3.5rem;
+        letter-spacing: 5px;
+    }
+
+    .game-item {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .game-info {
+        text-align: center;
+    }
+
+    .card {
+        padding: 25px;
+    }
+
+    .question-text {
+        font-size: 1.3rem;
+    }
+
+    .stat-label {
+        width: 70px;
+        font-size: 0.85rem;
+    }
+
+    .leaderboard-table {
+        font-size: 0.85rem;
+    }
+
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 10px 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .code-value {
+        font-size: 2.5rem;
+    }
+
+    .card h2 {
+        font-size: 1.5rem;
+    }
+
+    .logo h1 {
+        font-size: 1.2rem;
+    }
+}
