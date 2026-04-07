@@ -112,7 +112,7 @@ body {
     border-radius: 12px;
     transition: transform 0.1s, box-shadow 0.1s, background-color 0.2s;
     box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
-    margin-left: 10px;
+    margin: 10px;
     text-decoration: none;
     display: inline-block;
     text-align: center;
@@ -835,4 +835,477 @@ body {
     .logo h1 {
         font-size: 1.2rem;
     }
+}
+
+/* =========================================
+   13. ХЕДЕР С КНОПКОЙ VK
+   ========================================= */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 0 10px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.btn-login {
+    background-color: #ffa623;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-login:hover {
+    background-color: #e15e00;
+}
+
+/* =========================================
+   14. ФУТЕР
+   ========================================= */
+.footer {
+    margin-top: 40px;
+    padding: 30px 20px;
+    text-align: center;
+    color: var(--text-light);
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 900;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+
+.footer-logo span {
+    font-size: 2rem;
+}
+
+.footer-links {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.footer-links a {
+    color: var(--text-light);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.footer-links a:hover {
+    color: var(--primary);
+}
+
+.footer-copyright {
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.footer-social {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.footer-social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.footer-social a:hover {
+    background: var(--primary);
+    transform: scale(1.1);
+}
+
+.footer-social svg {
+    width: 30px;
+    height: 30px;
+    fill: white;
+}
+
+/* =========================================
+   15. ЛИЧНЫЙ КАБИНЕТ
+   ========================================= */
+.profile-card {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 3px solid #eee;
+}
+
+.profile-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 5px solid var(--primary);
+    object-fit: cover;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    flex-shrink: 0;
+}
+
+.profile-info h2 {
+    margin-bottom: 10px;
+    font-size: 2rem;
+    text-align: left;
+}
+
+.profile-details {
+    list-style: none;
+    color: var(--text-gray);
+}
+
+.profile-details li {
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+
+.profile-details strong {
+    color: var(--bg-color);
+}
+
+.profile-history {
+    text-align: left;
+    margin-top: 30px;
+}
+
+.profile-history h3 {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid #e0e0e0;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.history-item:hover {
+    transform: translateX(10px);
+    border-color: var(--secondary);
+    box-shadow: 0 5px 15px rgba(0, 210, 190, 0.2);
+}
+
+.history-game-info {
+    flex: 1;
+}
+
+.history-game-info h4 {
+    margin-bottom: 8px;
+    color: var(--bg-color);
+    font-size: 1.2rem;
+}
+
+.history-game-meta {
+    color: var(--text-gray);
+    font-size: 0.85rem;
+}
+
+.history-game-meta span {
+    margin-right: 15px;
+    display: inline-block;
+}
+
+.history-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 100px;
+    padding: 15px 25px;
+    background: var(--bg-color);
+    border-radius: 12px;
+    color: white;
+}
+
+.history-score .score-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-bottom: 5px;
+}
+
+.history-score .score-value {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--primary);
+}
+
+.history-rank {
+    font-size: 2.5rem;
+    margin-right: 20px;
+}
+
+.rank-gold {
+    color: #FFD700;
+}
+
+.rank-silver {
+    color: #C0C0C0;
+}
+
+.rank-bronze {
+    color: #CD7F32;
+}
+
+.empty-history {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-gray);
+    font-style: italic;
+}
+
+.back-btn-container {
+    margin-top: 30px;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profile-info h2 {
+        text-align: center;
+    }
+
+    .profile-details {
+        text-align: center;
+    }
+
+    .history-item {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .history-game-info {
+        text-align: center;
+    }
+
+    .history-rank {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+/* ===== Стили для страницы авторизации ===== */
+.auth-card {
+    max-width: 450px;
+    margin: 40px auto;
+}
+
+.auth-subtitle {
+    color: #666;
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 15px;
+}
+
+.auth-form {
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.label-icon {
+    font-size: 16px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s ease;
+    background-color: #fff;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.form-input::placeholder {
+    color: #aaa;
+}
+
+.error-message {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    color: #c00;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.error-icon {
+    font-size: 18px;
+}
+
+.btn-full {
+    width: 100%;
+}
+
+.btn-icon {
+    font-size: 18px;
+}
+
+.auth-divider {
+    position: relative;
+    text-align: center;
+    margin: 30px 0;
+}
+
+.auth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #ddd, transparent);
+}
+
+.auth-divider span {
+    background: white;
+    padding: 0 15px;
+    position: relative;
+    color: #999;
+    font-size: 14px;
+}
+
+.bot-link-section {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.bot-link-text {
+    color: #555;
+    margin-bottom: 15px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.info-icon {
+    font-size: 18px;
+    color: #667eea;
+}
+
+.vk-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+}
+
+.bot-link-hint {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #888;
+    line-height: 1.5;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .auth-card {
+        margin: 20px auto;
+        padding: 30px 20px;
+    }
+
+    .bot-link-section {
+        padding: 20px 15px;
+    }
+}
+
+/* ===== Кнопки на странице авторизации ===== */
+.auth-card .btn {
+    width: 100%;
+    margin: 15px 0;
+    display: block;
+    text-align: center;
+}
+
+.auth-card .btn:first-of-type {
+    margin-top: 25px;
+}
+
+.auth-divider {
+    margin: 20px 0;
+}
+
+.bot-link-section .btn {
+    margin: 15px 0 0 0;
 }

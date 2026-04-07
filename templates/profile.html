@@ -1,0 +1,181 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет | ОНЛАЙН-КВИЗ</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="bg-shape shape-1"></div>
+<div class="bg-shape shape-2"></div>
+
+<div class="container">
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">🎲</span>
+            <h1>ОНЛАЙН-КВИЗ</h1>
+        </div>
+        <nav class="nav-buttons">
+            <a href="#" class="btn btn-vk">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15.073 2H8.937C5.033 2 2 5.033 2 8.937v6.125C2 18.967 5.033 22 8.937 22h6.125C18.967 22 22 18.967 22 15.062V8.937C22 5.033 18.967 2 15.073 2zM17.89 15.29c.458.438.605.625.605 1.042 0 .313-.25.52-.605.52h-2.708c-2.083 0-3.02-1.146-4.27-2.396-.855-.833-1.23-1.041-1.605-1.041-.27 0-.687.104-.687.583v1.562c0 .417-.146.667-1.958.667-5.73 0-8.125-3.27-8.125-7.083 0-2.604 1.02-5.208 3.854-5.208h2.708c.73 0 1.042.333 1.25 1.083l.938 3.333c.208.625.417.834.687.834.375 0 .688-.313 1.375-1.02 1.042-1.146 2.188-2.5 4.063-2.5h2.708c.625 0 .833.313.833.833v3.02c0 .52-.208.834-.625.834-.854 0-2.083.52-2.916 1.562-.625.77-.834 1.146-.834 1.458 0 .208.104.438.313.646z"/>
+                </svg>
+                Авторизоваться
+            </a>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <section class="card profile-card">
+            <!-- Профиль пользователя -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    👤
+                </div>
+                <div class="profile-info">
+                    <h2>Иванов Иван Иванович</h2>
+                    <ul class="profile-details">
+                        <li><strong>Email:</strong> ivanov@example.com</li>
+                        <li><strong>ВКонтакте:</strong> @ivanov_ivan</li>
+                        <li><strong>Дата регистрации:</strong> 15 января 2025</li>
+                        <li><strong>Всего игр:</strong> 12</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- История игр -->
+            <div class="profile-history">
+                <h3>📜 История прошедших квизов</h3>
+
+                <div class="history-list">
+                    <!-- Игра 1 - Золотое место -->
+                    <div class="history-item">
+                        <span class="history-rank rank-gold">🥇</span>
+                        <div class="history-game-info">
+                            <h4>Новогодний Квиз 2025</h4>
+                            <div class="history-game-meta">
+                                <span>📅 31 декабря 2024</span>
+                                <span>⏱️ 45 минут</span>
+                                <span>👥 24 игрока</span>
+                            </div>
+                        </div>
+                        <div class="history-score">
+                            <span class="score-label">Очки</span>
+                            <span class="score-value">1250</span>
+                        </div>
+                    </div>
+
+                    <!-- Игра 2 - Серебряное место -->
+                    <div class="history-item">
+                        <span class="history-rank rank-silver">🥈</span>
+                        <div class="history-game-info">
+                            <h4>Киновикторина: Marvel vs DC</h4>
+                            <div class="history-game-meta">
+                                <span>📅 20 декабря 2024</span>
+                                <span>⏱️ 30 минут</span>
+                                <span>👥 18 игроков</span>
+                            </div>
+                        </div>
+                        <div class="history-score">
+                            <span class="score-label">Очки</span>
+                            <span class="score-value">980</span>
+                        </div>
+                    </div>
+
+                    <!-- Игра 3 - Бронзовое место -->
+                    <div class="history-item">
+                        <span class="history-rank rank-bronze">🥉</span>
+                        <div class="history-game-info">
+                            <h4>Музыкальный Квиз: Хиты 90-х</h4>
+                            <div class="history-game-meta">
+                                <span>📅 10 декабря 2024</span>
+                                <span>⏱️ 40 минут</span>
+                                <span>👥 30 игроков</span>
+                            </div>
+                        </div>
+                        <div class="history-score">
+                            <span class="score-label">Очки</span>
+                            <span class="score-value">875</span>
+                        </div>
+                    </div>
+
+                    <!-- Игра 4 - Без места -->
+                    <div class="history-item">
+                        <span class="history-rank">🎮</span>
+                        <div class="history-game-info">
+                            <h4>Географический Квиз: Страны Мира</h4>
+                            <div class="history-game-meta">
+                                <span>📅 5 декабря 2024</span>
+                                <span>⏱️ 35 минут</span>
+                                <span>👥 15 игроков</span>
+                            </div>
+                        </div>
+                        <div class="history-score">
+                            <span class="score-label">Очки</span>
+                            <span class="score-value">620</span>
+                        </div>
+                    </div>
+
+                    <!-- Игра 5 -->
+                    <div class="history-item">
+                        <span class="history-rank">🎮</span>
+                        <div class="history-game-info">
+                            <h4>Научный Квиз: Космос</h4>
+                            <div class="history-game-meta">
+                                <span>📅 1 декабря 2024</span>
+                                <span>⏱️ 50 минут</span>
+                                <span>👥 20 игроков</span>
+                            </div>
+                        </div>
+                        <div class="history-score">
+                            <span class="score-label">Очки</span>
+                            <span class="score-value">740</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопка назад -->
+            <div class="back-btn-container">
+                <a href="index.html" class="btn btn-secondary">← На главную</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <span>🎲</span>
+                ОНЛАЙН-КВИЗ
+            </div>
+            <div class="footer-links">
+                <a href="#">О проекте</a>
+                <a href="#">Правила</a>
+                <a href="#">Поддержка</a>
+                <a href="#">Контакты</a>
+            </div>
+            <div class="footer-social">
+                <a href="#" title="ВКонтакте">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15.073 2H8.937C5.033 2 2 5.033 2 8.937v6.125C2 18.967 5.033 22 8.937 22h6.125C18.967 22 22 18.967 22 15.062V8.937C22 5.033 18.967 2 15.073 2zM17.89 15.29c.458.438.605.625.605 1.042 0 .313-.25.52-.605.52h-2.708c-2.083 0-3.02-1.146-4.27-2.396-.855-.833-1.23-1.041-1.605-1.041-.27 0-.687.104-.687.583v1.562c0 .417-.146.667-1.958.667-5.73 0-8.125-3.27-8.125-7.083 0-2.604 1.02-5.208 3.854-5.208h2.708c.73 0 1.042.333 1.25 1.083l.938 3.333c.208.625.417.834.687.834.375 0 .688-.313 1.375-1.02 1.042-1.146 2.188-2.5 4.063-2.5h2.708c.625 0 .833.313.833.833v3.02c0 .52-.208.834-.625.834-.854 0-2.083.52-2.916 1.562-.625.77-.834 1.146-.834 1.458 0 .208.104.438.313.646z"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="footer-copyright">
+                © 2025 ОНЛАЙН-КВИЗ. Все права защищены.
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script src="../static/js/script.js"></script>
+</body>
+
+</html>
