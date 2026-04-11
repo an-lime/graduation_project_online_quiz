@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static "css/style.css" %}">
+{% endblock %}
+
+{% block content %}
+    <main class="main-content">
+        <section class="card hero-card">
+            <h2>Добро пожаловать!</h2>
+            <p>Выберите свою роль для продолжения:</p>
+
+            <div class="role-selector">
+                <a href="../games/create_game.html" class="role-btn host-btn">
+                    <span class="icon">🎤</span>
+                    <span>Я Ведущий</span>
+                    <small>Создать новую игру</small>
+                </a>
+
+                <a href="../games/games_list.html" class="role-btn guest-btn">
+                    <span class="icon">👀</span>
+                    <span>Я Зритель</span>
+                    <small>Смотреть трансляцию</small>
+                </a>
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/script.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ОНЛАЙН-КВИЗ | Лобби</title>
+    <link rel="stylesheet" href="../styles/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="bg-shape shape-1"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <section class="card lobby-card">
+                <div class="lobby-header">
+                    <h2>Комната создана!</h2>
+                    <a href="../main/index.html" class="btn btn-secondary" style="width:auto; margin:0;">✕ Выход</a>
+                </div>
+
+                <div class="lobby-body">
+                    <p class="lobby-status">● Ожидание подключения игроков...</p>
+
+                    <div class="code-display" onclick="copyGameCode()" title="Нажмите для копирования">
+                        <span class="code-label">Код комнаты:</span>
+                        <span id="lobby-code" class="code-value">ABCD</span>
+                    </div>
+
+                    <div class="lobby-info">
+                        <p>📱 Игроки вводят этот код в Telegram-боте</p>
+                        <p>👥 Подключено игроков: <span id="player-count">0</span></p>
+                        <p>📋 Выбранный квиз: <strong id="selected-quiz">Общие знания</strong></p>
+                    </div>
+
+                    <div class="lobby-actions">
+                        <form action="game_view.html" method="GET">
+                            <button type="submit" class="btn btn-primary btn-block" id="start-btn" disabled>
+                                🚀 Начать игру
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-secondary btn-block" onclick="alert('Настройки комнаты')">
+                            ⚙ Настройки
+                        </button>
+                    </div>
+
+                    <div class="player-list-preview">
+                        <h4>Список игроков:</h4>
+                        <ul id="player-list" class="player-list">
+                            <li class="player-item empty">Ожидание игроков...</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../scripts/script.js"></script>
+</body>
+
+</html>

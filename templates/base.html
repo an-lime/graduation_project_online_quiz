@@ -6,8 +6,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block css %}{% endblock %}
     <title>ОНЛАЙН-КВИЗ | Вход в систему</title>
-    <link rel="stylesheet" href="{% static "css/style.css" %}">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 
@@ -17,88 +17,38 @@
 <div class="bg-shape shape-2"></div>
 
 <div class="container">
-    <header class="header">
-        <div class="logo">
-            <span class="logo-icon">🎲</span>
-            <h1>ОНЛАЙН-КВИЗ</h1>
-        </div>
-        <nav class="nav-buttons">
-            <a href="{% url 'main:index' %}" class="btn btn-secondary">
-                ← На главную
-            </a>
-        </nav>
-    </header>
-
-    <main class="main-content">
-        <section class="card auth-card">
-            <h2>Вход в систему</h2>
-            <p class="auth-subtitle">Введите свои учётные данные для продолжения</p>
-
-            <form method="post" class="auth-form">
-                {% csrf_token %}
-
-                <div class="form-group">
-                    <label for="username" class="form-label">
-                        <span class="label-icon">👤</span>
-                        Логин
-                    </label>
-                    <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            class="form-input"
-                            placeholder="Введите логин"
-                            required
-                            autofocus
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="password" class="form-label">
-                        <span class="label-icon">🔒</span>
-                        Пароль
-                    </label>
-                    <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            class="form-input"
-                            placeholder="Введите пароль"
-                            required
-                    >
-                </div>
-
-                {% if form.errors %}
-                    <div class="error-message">
-                        <span class="error-icon">⚠️</span>
-                        Неверный логин или пароль. Попробуйте ещё раз.
+    {% block header %}
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">🎲</span>
+                <h1>ОНЛАЙН-КВИЗ</h1>
+            </div>
+            <nav class="nav-buttons">
+                {% if user.is_authenticated %}
+                    <div class="user-dropdown">
+                        <button type="button" class="btn btn-primary user-dropdown-toggle" id="userDropdownBtn">
+                            👤 {{ user.username }}
+                        </button>
+                        <div class="dropdown-menu" id="userDropdownMenu">
+                            <a href="{% url 'users:profile' %}" class="dropdown-item">📊 Профиль</a>
+                            <form action="{% url 'users:logout' %}" method="post" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item logout-item">🚪 Выйти</button>
+                            </form>
+                        </div>
                     </div>
+                {% else %}
+                    <a href="{% url 'users:login' %}" class="btn btn-login">
+                        Авторизоваться
+                    </a>
                 {% endif %}
+            </nav>
 
-                <button type="submit" class="btn btn-primary btn-full">
-                    <span class="btn-icon">🔑</span>
-                    Войти
-                </button>
-            </form>
+        </header>
 
-            <div class="auth-divider">
-                <span>или</span>
-            </div>
+    {% endblock %}
 
-            <div class="bot-link-section">
-                <p class="bot-link-text">
-                    <span class="info-icon">ℹ️</span>
-                    Ещё нет аккаунта?
-                </p>
-                <a href="https://vk.ru/im?sel=-237393782" target="_blank" class="btn btn-vk btn-full">
-                    Создать аккаунт через бота ВКонтакте
-                </a>
-                <p class="bot-link-hint">
-                    Нажмите кнопку, чтобы перейти в чат с ботом и зарегистрироваться
-                </p>
-            </div>
-        </section>
-    </main>
+    {% block content %}{% endblock %}
 
     <footer class="footer">
         <div class="footer-content">
@@ -121,13 +71,13 @@
                 </a>
             </div>
             <div class="footer-copyright">
-                © 2026 ОНЛАЙН-КВИЗ. Все права защищены.
+                © 2025 ОНЛАЙН-КВИЗ. Все права защищены.
             </div>
         </div>
     </footer>
 </div>
 
-<script src="{% static 'js/script.js' %}"></script>
+{% block js %}{% endblock %}
 </body>
 
 </html>

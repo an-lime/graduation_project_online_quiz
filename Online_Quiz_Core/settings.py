@@ -122,3 +122,17 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+SESSION_COOKIE_AGE = 1209600
+
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+LOGIN_REDIRECT_URL = 'main:index'
+
+LOGIN_URL = 'users:login'
+
+LOGOUT_REDIRECT_URL = 'main:index'

@@ -1309,3 +1309,89 @@ body {
 .bot-link-section .btn {
     margin: 15px 0 0 0;
 }
+
+/* ===== Выпадающее меню пользователя ===== */
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.user-dropdown-toggle {
+    margin: 0; /* Сбрасываем margin-left: 10px из .btn */
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 12px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    min-width: 190px;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+}
+
+.dropdown-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 18px;
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: var(--font-main);
+    text-align: left;
+}
+
+.dropdown-item:hover {
+    background: #f7f7f7;
+}
+
+.logout-item {
+    color: var(--danger);
+    border-top: 1px solid #eee;
+}
+
+.logout-item:hover {
+    background: #fff0f0;
+}
+
+/* Мобильная адаптация меню */
+@media (max-width: 768px) {
+    .dropdown-menu {
+        position: fixed;
+        top: auto;
+        bottom: 20px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%) translateY(10px);
+        width: 90%;
+        max-width: 320px;
+    }
+
+    .dropdown-menu.active {
+        transform: translateX(-50%) translateY(0);
+    }
+}

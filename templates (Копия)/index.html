@@ -22,11 +22,30 @@
             <span class="logo-icon">🎲</span>
             <h1>ОНЛАЙН-КВИЗ</h1>
         </div>
+
+
         <nav class="nav-buttons">
-            <a href="{% url 'users:login' %}" class="btn btn-login">
-                Авторизоваться
-            </a>
+            {% if user.is_authenticated %}
+                <div class="user-dropdown">
+                    <button type="button" class="btn btn-primary user-dropdown-toggle" id="userDropdownBtn">
+                        👤 {{ user.username }}
+                    </button>
+                    <div class="dropdown-menu" id="userDropdownMenu">
+                        <a href="{% url 'users:profile' %}" class="dropdown-item">📊 Профиль</a>
+                        <form action="{% url 'users:logout' %}" method="post" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item logout-item">🚪 Выйти</button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{% url 'users:login' %}" class="btn btn-login">
+                    Авторизоваться
+                </a>
+            {% endif %}
         </nav>
+
+
     </header>
 
     <main class="main-content">

@@ -1,14 +1,29 @@
-/**
- * script.js
- * Общая логика для всех страниц Онлайн-Квиза
- * 
- * Функции:
- * 1. Генерация кода комнаты
- * 2. Копирование кода в буфер обмена
- * 3. Валидация форм
- * 4. Имитация WebSocket для лобби
- * 5. Уведомления (toast)
- */
+document.addEventListener('DOMContentLoaded', () => {
+    const dropdownBtn = document.getElementById('userDropdownBtn');
+    const dropdownMenu = document.getElementById('userDropdownMenu');
+
+    if (dropdownBtn && dropdownMenu) {
+        // Открытие/закрытие по клику на кнопку
+        dropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('active');
+        });
+
+        // Закрытие при клике вне меню
+        document.addEventListener('click', (e) => {
+            if (!dropdownBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                dropdownMenu.classList.remove('active');
+            }
+        });
+
+        // Закрытие при клике на пункт меню
+        dropdownMenu.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', () => {
+                dropdownMenu.classList.remove('active');
+            });
+        });
+    }
+});
 
 // =========================================
 // 1. ГЕНЕРАЦИЯ КОДА КОМНАТЫ
@@ -288,8 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isValid) {
                 e.preventDefault();
                 showToast('Заполните все обязательные поля', 'error');
-            } else {
-                showToast('Форма отправлена!', 'success');
             }
         });
     });
