@@ -24,7 +24,7 @@ class UserProfile(models.Model):
 
     role = models.ForeignKey(
         UserRole,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='profiles',

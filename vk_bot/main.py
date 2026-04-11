@@ -23,7 +23,7 @@ django.setup()
 from vkbottle import Bot
 
 from config_data.config import VkBotConfig, load_config
-from handlers import main_labeler, callback_labeler
+from handlers import main_labeler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,7 +36,6 @@ def main():
 
     bot = Bot(token=config.vkBot.token)
     bot.labeler.load(main_labeler)
-    bot.labeler.load(callback_labeler)
 
     bot.run_forever()
 

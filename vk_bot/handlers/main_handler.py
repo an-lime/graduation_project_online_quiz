@@ -1,19 +1,17 @@
-from vkbottle import Text, Callback
+from vkbottle import GroupEventType, GroupTypes
 from vkbottle.bot import Message
 from vkbottle.framework.labeler import BotLabeler
-from vkbottle.tools import Keyboard
 
-from vk_bot.utils.db import get_current_user
+from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
+from vk_bot.utils.support_functions import stop_load_callback
+from .callback_handlers.main_callback_handler import check_profile, create_profile, go_main, hide_password
 
 main_labeler = BotLabeler()
 
 
 @main_labeler.message(text="Начать")
 async def start_command(message: Message):
-    kb = (
-        Keyboard(one_time=False)
-        .add(Text("Проверить профиль"))
-    ).get_json()
+    kb = create_main_menu_keyboard()
 
     await message.answer(
         message="Приветствую тебя в боте для викторин!",
@@ -21,16 +19,16 @@ async def start_command(message: Message):
     )
 
 
-@main_labeler.message(text="Проверить профиль")
-async def check_profile(message: Message):
-    user = await get_current_user(message.from_id)
-    if user is None:
-        kb = (
-            Keyboard(one_time=False)
-            .add(Callback("Создать профиль", {"action": "create_profile"}))
-        ).get_json()
+@main_labeler.raw_event(GroupEventType.MESSAGE_EVENT, dataclass=GroupTypes.MessageEvent)
+async def callback_catch(event: GroupTypes.MessageEvent):
+    await stop_load_callback(event)
 
-        await message.answer(
-            "У вас нет аккаунта!",
-            keyboard=kb
-        )
+    match event.object.payload.get("action"):
+        case "go_main":
+            await go_main(event)
+        case "check_profile":
+            await check_profile(event)
+        case "create_profile":
+            await create_profile(event)
+        case "hide_password":
+            await hide_password(event)
