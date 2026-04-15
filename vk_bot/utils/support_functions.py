@@ -1,3 +1,5 @@
+import uuid
+
 from vkbottle import GroupTypes
 
 
@@ -7,3 +9,7 @@ async def stop_load_callback(event: GroupTypes.MessageEvent):
         peer_id=event.object.peer_id,
         user_id=event.object.user_id,
     )
+
+
+def generate_event_random_id():
+    return int(uuid.uuid4().hex[:12], 16)

@@ -1,0 +1,361 @@
+/* =========================================
+БАЗОВЫЕ СТИЛИ (base.css)
+Общие для всех страниц: фон, шрифты, хедер, футер
+========================================= */
+
+/* --- Переменные --- */
+:root {
+    --bg-color: #2c0e37;
+    --card-bg: #ffffff;
+    --primary: #ffde59;
+    --primary-hover: #ffcc00;
+    --secondary: #00d2be;
+    --secondary-hover: #00b3a2;
+    --accent-pink: #ff007f;
+    --text-dark: #1a1a1a;
+    --text-light: #ffffff;
+    --text-gray: #777777;
+    --danger: #ff4757;
+    --success: #2ed573;
+    --warning: #ffa502;
+    --font-main: 'Montserrat', sans-serif;
+}
+
+/* --- Глобальные настройки --- */
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg-color);
+    color: var(--text-dark);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* --- Фоновые декоративные элементы --- */
+.bg-shape {
+    position: fixed;
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0.6;
+    filter: blur(60px);
+    pointer-events: none;
+}
+
+.shape-1 {
+    width: 400px;
+    height: 400px;
+    background: #6a0dad;
+    top: -100px;
+    left: -100px;
+}
+
+.shape-2 {
+    width: 300px;
+    height: 300px;
+    background: var(--accent-pink);
+    bottom: -50px;
+    right: -50px;
+}
+
+/* =========================================
+ХЕДЕР
+========================================= */
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 0 10px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* Логотип */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo h1 {
+    font-size: 1.8rem !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    color: var(--text-light) !important;
+    margin: 0 !important;
+    line-height: 1;
+}
+
+.logo-icon {
+    font-size: 2.8rem !important;
+    transform: rotate(-10deg);
+    display: inline-block;
+    line-height: 1;
+}
+
+/* =========================================
+КНОПКА ПРОФИЛЯ
+========================================= */
+
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.user-dropdown-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-dark) !important;
+    border: 2px solid var(--primary) !important;
+    font-size: 1.1rem !important;
+    padding: 12px 24px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px;
+    background-color: var(--primary) !important;
+    border-radius: 12px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.user-dropdown-toggle:hover,
+.user-dropdown-toggle.show,
+.user-dropdown-toggle:active {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+    color: var(--text-dark) !important;
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+.btn-login {
+    background-color: #ffa623 !important;
+    color: white !important;
+    border: 2px solid #ffa623 !important;
+    font-size: 1.1rem !important;
+    padding: 12px 24px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px;
+    border-radius: 12px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-login:hover,
+.btn-login:active {
+    background-color: #e15e00 !important;
+    border-color: #e15e00 !important;
+    color: white !important;
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+/* =========================================
+ВЫПАДАЮЩЕЕ МЕНЮ
+========================================= */
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: auto;
+    min-width: 260px;
+    border: 3px solid var(--primary);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    padding: 8px 0;
+    margin-top: 10px;
+    background: var(--card-bg);
+    z-index: 1000;
+    /* ВАЖНО: предотвращаем выход за правый край */
+    max-width: calc(100vw - 20px);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 20px !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: var(--text-dark) !important;
+    background-color: transparent !important;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    font-family: var(--font-main);
+    text-align: left;
+}
+
+.dropdown-item:hover {
+    background-color: var(--primary) !important;
+    color: var(--text-dark) !important;
+    transform: translateX(5px);
+    box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-divider {
+    border: none !important; /* Полностью убираем стандартный border hr */
+    height: 1px !important; /* Фиксируем физическую толщину */
+    background-color: #e0e0e0 !important; /* Рисуем линию через фон (надежнее) */
+    margin: 10px 0 !important; /* Отступы сверху/снизу */
+    opacity: 1 !important;
+    box-shadow: none !important; /* Убираем возможные тени браузера */
+}
+
+/* =========================================
+ФУТЕР
+========================================= */
+
+.footer {
+    color: var(--text-light);
+    margin-top: 40px;
+    padding: 30px 20px;
+    text-align: center;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 900;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+
+.footer-logo span {
+    font-size: 2rem;
+}
+
+.footer-links {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.footer-links a {
+    color: var(--text-light);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: opacity 0.2s, color 0.2s;
+}
+
+.footer-links a:hover {
+    opacity: 1;
+    color: var(--primary) !important;
+}
+
+.social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.social-link:hover {
+    background: var(--primary);
+    transform: scale(1.1);
+}
+
+.social-link svg {
+    fill: white;
+    width: 24px;
+    height: 24px;
+}
+
+/* --- Утилиты --- */
+.hover-primary:hover {
+    color: var(--primary) !important;
+}
+
+.text-primary {
+    color: var(--primary) !important;
+}
+
+/* --- Адаптивность --- */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .nav-buttons {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .logo h1 {
+        font-size: 1.5rem !important;
+    }
+
+    .logo-icon {
+        font-size: 2.2rem !important;
+    }
+
+    .user-dropdown-toggle,
+    .btn-login {
+        font-size: 1rem !important;
+        padding: 10px 20px !important;
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+
+    .dropdown-menu {
+        position: fixed !important;
+        bottom: 20px !important;
+        top: auto !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        width: 90%;
+        max-width: 320px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo h1 {
+        font-size: 1.3rem !important;
+    }
+
+    .logo-icon {
+        font-size: 2rem !important;
+    }
+
+    .user-dropdown-toggle,
+    .btn-login {
+        font-size: 0.95rem !important;
+        padding: 10px 18px !important;
+    }
+
+    .dropdown-menu {
+        min-width: 220px;
+    }
+}

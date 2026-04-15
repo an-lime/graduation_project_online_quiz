@@ -3,8 +3,8 @@ from vkbottle.bot import Message
 from vkbottle.framework.labeler import BotLabeler
 
 from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
-from vk_bot.utils.support_functions import stop_load_callback
-from .callback_handlers.main_callback_handler import check_profile, create_profile, go_main, hide_password
+from .callback_handlers.main_callback_handler import my_profile, create_profile, go_main, hide_password, reset_password, \
+    confirm_reset
 
 main_labeler = BotLabeler()
 
@@ -21,14 +21,22 @@ async def start_command(message: Message):
 
 @main_labeler.raw_event(GroupEventType.MESSAGE_EVENT, dataclass=GroupTypes.MessageEvent)
 async def callback_catch(event: GroupTypes.MessageEvent):
-    await stop_load_callback(event)
+    await event.ctx_api.messages.send_message_event_answer(
+        event_id=event.object.event_id,
+        peer_id=event.object.peer_id,
+        user_id=event.object.user_id,
+    )
 
     match event.object.payload.get("action"):
         case "go_main":
             await go_main(event)
-        case "check_profile":
-            await check_profile(event)
+        case "my_profile":
+            await my_profile(event)
         case "create_profile":
             await create_profile(event)
         case "hide_password":
             await hide_password(event)
+        case "reset_password":
+            await reset_password(event)
+        case "confirm_reset":
+            await confirm_reset(event)

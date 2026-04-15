@@ -31,6 +31,8 @@ class UserProfile(models.Model):
         verbose_name="Роль пользователя"
     )
 
+    last_password_reset = models.DateTimeField(null=True, blank=True)
+
     def __str__(self):
         return self.user.username
 

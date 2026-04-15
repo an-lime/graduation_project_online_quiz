@@ -5,6 +5,6 @@ from vkbottle.tools import Keyboard
 def create_main_menu_keyboard():
     kb = (
         Keyboard()
-        .add(Callback("Проверить профиль", {"action": "check_profile"}))
+        .add(Callback("Мой профиль", {"action": "my_profile"}))
     ).get_json()
     return kb

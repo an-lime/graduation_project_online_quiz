@@ -1,0 +1,280 @@
+/* =========================================
+ГЛАВНАЯ СТРАНИЦА - СТИЛЬ JACKBOX
+Яркий, игривый дизайн с крупными элементами
+========================================= */
+
+/* --- Градиентный заголовок (оранжевый) --- */
+.text-gradient {
+    background: linear-gradient(135deg, #ff6b35 0%, #ffa623 50%, #ffde59 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 4px 8px rgba(255, 107, 53, 0.3));
+    font-weight: 900 !important;
+    letter-spacing: -1px;
+}
+
+/* --- Карточка героя --- */
+.hero-card {
+    background: var(--card-bg);
+    border-radius: 30px;
+    border: 5px solid var(--primary);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+    0 0 0 8px rgba(255, 222, 89, 0.2),
+    inset 0 0 60px rgba(255, 222, 89, 0.1);
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Декоративные элементы на карточке */
+.hero-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 222, 89, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0.8) rotate(-2deg);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) rotate(0);
+        opacity: 1;
+    }
+}
+
+/* --- Контейнер выбора роли --- */
+.role-selector {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+/* --- Кнопки ролей (JACKBOX STYLE) --- */
+.role-btn {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border: none !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 10px 0 #d0d0d0,
+    0 10px 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Эффект нажатия */
+.role-btn:active {
+    transform: translateY(10px);
+    box-shadow: 0 0 0 #d0d0d0,
+    0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Ведущий - розово-оранжевый Jackbox */
+.host-btn {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+    border: 4px solid #ff6b35 !important;
+}
+
+.host-btn .card-body {
+    color: white;
+}
+
+.host-btn .role-icon {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.host-btn:hover {
+    transform: translateY(-5px) rotate(-2deg) scale(1.05);
+    box-shadow: 0 15px 0 #ff6b35,
+    0 20px 40px rgba(255, 107, 53, 0.4);
+    background: linear-gradient(135deg, #ff8e53 0%, #ffa623 100%);
+}
+
+.host-btn:hover:active {
+    transform: translateY(5px) rotate(-2deg) scale(1.02);
+    box-shadow: 0 5px 0 #ff6b35,
+    0 10px 20px rgba(255, 107, 53, 0.4);
+}
+
+/* Зритель - бирюзово-фиолетовый Jackbox */
+.guest-btn {
+    background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    border: 4px solid #00d2be !important;
+}
+
+.guest-btn .card-body {
+    color: white;
+}
+
+.guest-btn .role-icon {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.guest-btn:hover {
+    transform: translateY(-5px) rotate(2deg) scale(1.05);
+    box-shadow: 0 15px 0 #00d2be,
+    0 20px 40px rgba(0, 210, 190, 0.4);
+    background: linear-gradient(135deg, #44a08d 0%, #00d2be 100%);
+}
+
+.guest-btn:hover:active {
+    transform: translateY(5px) rotate(2deg) scale(1.02);
+    box-shadow: 0 5px 0 #00d2be,
+    0 10px 20px rgba(0, 210, 190, 0.4);
+}
+
+/* --- Иконка роли --- */
+.role-icon {
+    font-size: 5rem;
+    transition: all 0.3s ease;
+    display: block;
+    margin-bottom: 15px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(-5deg);
+    }
+    50% {
+        transform: translateY(-10px) rotate(5deg);
+    }
+}
+
+.host-btn:hover .role-icon,
+.guest-btn:hover .role-icon {
+    animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: scale(1) rotate(0);
+    }
+    50% {
+        transform: scale(1.3) rotate(-10deg);
+    }
+}
+
+/* --- Заголовок роли --- */
+.role-title {
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 1.8rem !important;
+    font-weight: 900 !important;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* --- Подзаголовок --- */
+.role-subtitle {
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    opacity: 0.95;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* --- Адаптивность --- */
+@media (max-width: 768px) {
+    .hero-card {
+        padding: 30px 20px !important;
+        border-width: 3px;
+    }
+
+    .display-4 {
+        font-size: 2.2rem;
+    }
+
+    .role-btn {
+        min-height: 240px;
+    }
+
+    .role-icon {
+        font-size: 4rem !important;
+    }
+
+    .role-title {
+        font-size: 1.5rem !important;
+    }
+
+    .role-subtitle {
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-card {
+        padding: 25px 15px !important;
+    }
+
+    .display-4 {
+        font-size: 1.8rem;
+    }
+
+    .lead {
+        font-size: 1rem;
+    }
+
+    .role-btn {
+        min-height: 200px;
+    }
+
+    .role-icon {
+        font-size: 3.5rem !important;
+    }
+
+    .role-title {
+        font-size: 1.3rem !important;
+    }
+}
+
+/* --- Дополнительные эффекты Jackbox --- */
+/* Пульсирующая рамка для привлечения внимания */
+@keyframes pulse-border {
+    0%, 100% {
+        box-shadow: 0 10px 0 #d0d0d0,
+        0 10px 20px rgba(0, 0, 0, 0.2),
+        0 0 0 0 rgba(255, 222, 89, 0.7);
+    }
+    50% {
+        box-shadow: 0 10px 0 #d0d0d0,
+        0 10px 20px rgba(0, 0, 0, 0.2),
+        0 0 0 15px rgba(255, 222, 89, 0);
+    }
+}
+
+/* При загрузке страницы */
+.hero-card {
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+        0 0 0 8px rgba(255, 222, 89, 0.2),
+        inset 0 0 60px rgba(255, 222, 89, 0.1);
+    }
+    to {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+        0 0 0 12px rgba(255, 222, 89, 0.3),
+        inset 0 0 80px rgba(255, 222, 89, 0.2);
+    }
+}

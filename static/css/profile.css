@@ -1,0 +1,423 @@
+/* =========================================
+ЛИЧНЫЙ КАБИНЕТ - JACKBOX STYLE
+========================================= */
+.profile-card {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--card-bg);
+    border-radius: 30px;
+    border: 5px solid var(--primary);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 8px rgba(255, 222, 89, 0.15);
+    padding: 40px;
+    animation: popIn 0.5s ease;
+    position: relative;
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* --- Уведомления (Ошибки/Успех) --- */
+.profile-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.alert-jackbox {
+    padding: 15px 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    animation: shake 0.4s ease;
+    border: 3px solid;
+}
+
+.alert-error {
+    background: linear-gradient(135deg, #fff0f0 0%, #ffe0e0 100%);
+    border-color: var(--danger);
+    color: #b30000;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #f0fff4 0%, #e0ffe8 100%);
+    border-color: var(--success);
+    color: #006622;
+}
+
+.alert-icon {
+    font-size: 1.5rem;
+}
+
+/* --- Шапка профиля --- */
+.profile-header-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+/* Кнопка "На главную" - увеличена */
+.btn-back-main {
+    position: absolute;
+    top: -15px;
+    left: 0;
+    font-size: 1.1rem !important;
+    font-weight: 800 !important;
+    color: var(--text-gray);
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-back-main:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: rgba(255, 222, 89, 0.1);
+    transform: translateX(-4px);
+}
+
+/* Аватар */
+.profile-avatar-circle {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 6px solid var(--primary);
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    margin-bottom: 15px;
+    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.1);
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+/* Центрированный блок заголовка */
+.profile-title-block {
+    width: 100%;
+}
+
+.profile-title {
+    font-size: 2.2rem;
+    font-weight: 900;
+    margin: 0 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, #ff6b35 0%, #ffa623 50%, #ffde59 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.profile-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 10px 0;
+}
+
+.badge-role {
+    background: var(--primary);
+    color: var(--text-dark);
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+    display: inline-block;
+}
+
+/* --- Табы --- */
+.profile-tabs {
+    border-bottom: 3px solid #eee;
+    margin-bottom: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.profile-tabs .nav-link {
+    background: transparent;
+    border: none;
+    border-bottom: 4px solid transparent;
+    color: var(--text-gray);
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 10px 20px;
+    border-radius: 12px 12px 0 0;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.profile-tabs .nav-link:hover {
+    color: var(--primary);
+    background: rgba(255, 222, 89, 0.1);
+}
+
+.profile-tabs .nav-link.active {
+    color: var(--bg-color);
+    border-bottom-color: var(--primary);
+    background: var(--primary);
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* --- Формы и поля --- */
+.profile-form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+}
+
+.form-control {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 1.05rem;
+    border: 3px solid #ddd;
+    border-radius: 15px;
+    font-weight: 600;
+    background: #fafafa;
+    transition: all 0.3s ease;
+    font-family: var(--font-main);
+}
+
+.form-control:focus {
+    border-color: var(--secondary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(0, 210, 190, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    outline: none;
+}
+
+.form-control.is-invalid {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 4px rgba(255, 71, 87, 0.2);
+}
+
+.form-text {
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    margin-top: 5px;
+    font-weight: 600;
+}
+
+.error-message {
+    color: var(--danger);
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-top: 5px;
+    display: none;
+    text-align: left;
+}
+
+.error-message.show {
+    display: block;
+}
+
+/* --- Кнопки Jackbox --- */
+.btn-jackbox {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 14px 28px;
+    border-radius: 15px;
+    border: 3px solid;
+    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.btn-jackbox:active {
+    transform: translateY(6px);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.profile-card .btn-primary.btn-jackbox {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+    color: var(--text-dark);
+    border-color: var(--primary);
+}
+
+.profile-card .btn-primary.btn-jackbox:hover {
+    background: linear-gradient(135deg, var(--primary-hover) 0%, #ffa623 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 0 rgba(0, 0, 0, 0.2);
+}
+
+.profile-card .btn-warning.btn-jackbox {
+    background: linear-gradient(135deg, #ffa502 0%, #ff7f00 100%);
+    color: white;
+    border-color: #ffa502;
+}
+
+.profile-card .btn-warning.btn-jackbox:hover {
+    background: linear-gradient(135deg, #ff7f00 0%, #e65c00 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 0 rgba(0, 0, 0, 0.2);
+}
+
+.btn-full {
+    width: 100%;
+    margin-top: 15px;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 12px;
+    padding: 12px;
+    color: #856404;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+/* --- Информация и Статистика --- */
+.info-section {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px solid #eee;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 2px dashed #e0e0e0;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 700;
+    color: var(--text-gray);
+    font-size: 0.95rem;
+    text-transform: uppercase;
+}
+
+.info-value {
+    font-weight: 800;
+    color: var(--bg-color);
+    font-size: 1.05rem;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border: 3px solid var(--secondary);
+    border-radius: 20px;
+    padding: 20px 15px;
+    text-align: center;
+    box-shadow: 0 10px 0 rgba(0, 210, 190, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 0 rgba(0, 210, 190, 0.3);
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--bg-color);
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-top: 5px;
+}
+
+.list-group-item {
+    border: 2px solid #eee;
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #fff 0%, #f9f9f9 100%);
+    transition: all 0.2s ease;
+}
+
+.list-group-item:hover {
+    border-color: var(--secondary);
+    transform: translateX(5px);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .profile-card {
+        padding: 25px 15px;
+        border-width: 3px;
+    }
+
+    .profile-avatar-circle {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
+    }
+
+    .profile-title {
+        font-size: 1.6rem;
+    }
+
+    .btn-back-main {
+        position: static;
+        margin-bottom: 15px;
+        width: auto;
+    }
+
+    .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+}

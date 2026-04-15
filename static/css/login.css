@@ -1,0 +1,378 @@
+/* =========================================
+СТРАНИЦА АВТОРИЗАЦИИ (login.css)
+Яркий дизайн в стиле Jackbox Party Pack
+========================================= */
+
+/* --- Упрощённый хедер для авторизации --- */
+.header-simple {
+    background: transparent !important; /* Убираем серый фон */
+    border: none !important; /* Убираем рамку */
+    box-shadow: none !important; /* Убираем тень */
+    backdrop-filter: none !important;
+    padding: 10px 0;
+    margin-bottom: 20px;
+}
+
+.btn-nav {
+    background: rgba(255, 255, 255, 0.1); /* Полупрозрачный фон */
+    color: white !important;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 20px !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    text-transform: none !important; /* Убираем капс */
+    letter-spacing: 0;
+    border-radius: 8px;
+    box-shadow: none !important;
+    transition: all 0.3s ease;
+}
+
+.btn-nav:hover {
+    background: var(--primary) !important; /* Жёлтый при наведении */
+    color: var(--bg-color) !important;
+    border-color: var(--primary) !important;
+    transform: translateY(-2px);
+}
+
+.btn-nav:active {
+    transform: translateY(0) !important;
+    box-shadow: none !important;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .header-simple {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* --- Карточка авторизации --- */
+.auth-card {
+    max-width: 550px;
+    margin: 0 auto;
+    background: var(--card-bg);
+    border-radius: 30px;
+    border: 5px solid var(--primary);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+    0 0 0 8px rgba(255, 222, 89, 0.15),
+    inset 0 0 40px rgba(255, 222, 89, 0.1);
+    padding: 50px 40px;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Декоративный градиентный фон */
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 222, 89, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+/* --- Оранжевый градиентный текст --- */
+.text-gradient-orange {
+    background: linear-gradient(135deg, #ff6b35 0%, #ffa623 50%, #ffde59 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 3px 6px rgba(255, 107, 53, 0.3));
+}
+
+/* --- Поля формы --- */
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.label-icon {
+    font-size: 1.3rem;
+    display: inline-block;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+.form-input-lg {
+    padding: 16px 20px;
+    font-size: 1.1rem;
+    border: 3px solid #e0e0e0;
+    border-radius: 15px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    background: #fafafa;
+}
+
+.form-input-lg:focus {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(255, 222, 89, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.form-input-lg::placeholder {
+    color: #aaa;
+    font-weight: 500;
+}
+
+/* --- Кнопка входа (JACKBOX STYLE) --- */
+.btn-jackbox {
+    position: relative;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 16px 32px;
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.2),
+    0 15px 30px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    overflow: hidden;
+}
+
+.btn-jackbox:active {
+    transform: translateY(8px);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0.2),
+    0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn-jackbox .btn-icon {
+    font-size: 1.4rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Основная кнопка (жёлтая) */
+.btn-primary.btn-jackbox {
+    background: linear-gradient(135deg, #ffde59 0%, #ffcc00 100%);
+    color: var(--text-dark);
+    border: 3px solid var(--primary);
+}
+
+.btn-primary.btn-jackbox:hover {
+    background: linear-gradient(135deg, #ffcc00 0%, #ffa623 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 0 rgba(0, 0, 0, 0.2),
+    0 20px 40px rgba(255, 204, 0, 0.4);
+}
+
+/* Кнопка ВКонтакте (синяя) */
+.btn-vk {
+    background: linear-gradient(135deg, #4a76a8 0%, #3d6496 100%);
+    color: white;
+    border: 3px solid #4a76a8;
+}
+
+.btn-vk:hover {
+    background: linear-gradient(135deg, #3d6496 0%, #2d5080 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 0 rgba(0, 0, 0, 0.2),
+    0 20px 40px rgba(74, 118, 168, 0.4);
+    color: white;
+}
+
+.vk-icon {
+    flex-shrink: 0;
+    transition: transform 0.3s;
+}
+
+.btn-vk:hover .vk-icon {
+    transform: scale(1.1) rotate(-5deg);
+}
+
+/* --- Сообщение об ошибке --- */
+.alert-jackbox {
+    background: linear-gradient(135deg, #fff0f0 0%, #ffe0e0 100%);
+    border: 3px solid var(--danger);
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    animation: shake 0.5s ease-in-out;
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.2);
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-10px);
+    }
+    75% {
+        transform: translateX(10px);
+    }
+}
+
+.alert-icon {
+    font-size: 2rem;
+    animation: wiggle 1s infinite;
+}
+
+@keyframes wiggle {
+    0%, 100% {
+        transform: rotate(-10deg);
+    }
+    50% {
+        transform: rotate(10deg);
+    }
+}
+
+/* --- Разделитель --- */
+.auth-divider {
+    position: relative;
+    text-align: center;
+    margin: 30px 0;
+}
+
+.auth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(to right, transparent, #e0e0e0, transparent);
+}
+
+.auth-divider span {
+    background: var(--card-bg);
+    padding: 0 20px;
+    position: relative;
+    color: var(--text-gray);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* --- Блок с ботом --- */
+.bot-link-section {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    border: 3px dashed var(--secondary);
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.bot-link-section:hover {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, #fffef0 0%, #fff9e0 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 222, 89, 0.3);
+}
+
+.bot-link-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-dark);
+}
+
+.info-icon {
+    font-size: 1.5rem;
+    color: var(--primary);
+    animation: bounce 2s infinite;
+}
+
+.bot-link-hint {
+    font-size: 0.95rem;
+    color: var(--text-gray);
+    font-weight: 600;
+    text-align: center;
+}
+
+.btn-jackbox.btn-login {
+    padding: 12px 40px; /* Уменьшили отступы */
+    font-size: 1.2rem;
+    display: inline-flex;
+}
+
+/* Центрируем содержимое формы */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Расстояние между полями и кнопкой */
+}
+
+/* Сообщение об ошибке тоже центрируем или растягиваем на форму */
+.alert-jackbox {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Блок "Или" и блок с ботом растягиваем на всю ширину */
+.auth-divider,
+.bot-link-section {
+    width: 100%;
+}
+
+/* --- Адаптивность --- */
+@media (max-width: 768px) {
+    .auth-card {
+        padding: 40px 25px;
+        border-width: 3px;
+    }
+
+    .display-4 {
+        font-size: 2rem;
+    }
+
+    .form-input-lg {
+        padding: 14px 16px;
+        font-size: 1rem;
+    }
+
+    .btn-jackbox {
+        padding: 14px 24px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 30px 20px;
+    }
+
+    .display-4 {
+        font-size: 1.75rem;
+    }
+
+    .form-label {
+        font-size: 1rem;
+    }
+}

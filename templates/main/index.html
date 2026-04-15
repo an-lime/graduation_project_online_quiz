@@ -1,33 +1,58 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}ОНЛАЙН-КВИЗ | Главная{% endblock %}
+
 {% block css %}
-    <link rel="stylesheet" href="{% static "css/style.css" %}">
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
 {% endblock %}
 
 {% block content %}
-    <main class="main-content">
-        <section class="card hero-card">
-            <h2>Добро пожаловать!</h2>
-            <p>Выберите свою роль для продолжения:</p>
+    <main class="main-content py-5">
+        <div class="container">
+            <section class="card hero-card text-center p-4 p-md-5">
 
-            <div class="role-selector">
-                <a href="../games/create_game.html" class="role-btn host-btn">
-                    <span class="icon">🎤</span>
-                    <span>Я Ведущий</span>
-                    <small>Создать новую игру</small>
-                </a>
+                <!-- Заголовок -->
+                <h2 class="display-4 fw-bold mb-3 text-gradient">
+                    Добро пожаловать!
+                </h2>
 
-                <a href="../games/games_list.html" class="role-btn guest-btn">
-                    <span class="icon">👀</span>
-                    <span>Я Зритель</span>
-                    <small>Смотреть трансляцию</small>
-                </a>
-            </div>
-        </section>
+                <p class="lead text-muted mb-5">
+                    Выберите свою роль для продолжения:
+                </p>
+
+                <!-- Выбор роли -->
+                <div class="role-selector row g-4 justify-content-center">
+
+                    <!-- Кнопка "Я Ведущий" -->
+                    <div class="col-md-5 col-sm-10">
+                        <a href="#" class="role-btn host-btn card h-100 border-3">
+                            <div class="card-body d-flex flex-column align-items-center p-4">
+                                <span class="role-icon display-1 mb-3">🎤</span>
+                                <span class="role-title h4 fw-bold mb-2">Я Ведущий</span>
+                                <small class="role-subtitle text-muted">Создать новую игру</small>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Кнопка "Я Зритель" -->
+                    <div class="col-md-5 col-sm-10">
+                        <a href="#" class="role-btn guest-btn card h-100 border-3">
+                            <div class="card-body d-flex flex-column align-items-center p-4">
+                                <span class="role-icon display-1 mb-3">👀</span>
+                                <span class="role-title h4 fw-bold mb-2">Я Зритель</span>
+                                <small class="role-subtitle text-muted">Смотреть трансляцию</small>
+                            </div>
+                        </a>
+                    </div>
+
+                </div>
+
+            </section>
+        </div>
     </main>
 {% endblock %}
 
 {% block js %}
-    <script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/index.js' %}"></script>
 {% endblock %}

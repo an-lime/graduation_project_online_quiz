@@ -1,131 +1,200 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}ОНЛАЙН-КВИЗ | Профиль{% endblock %}
+
 {% block css %}
-    <link rel="stylesheet" href="{% static "css/style.css" %}">
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
 {% endblock %}
 
 {% block content %}
-    <main class="main-content">
-        <section class="card profile-card">
-            <!-- Профиль пользователя -->
-            <div class="profile-header">
-                <div class="profile-avatar">
-                    👤
-                </div>
-                <div class="profile-info">
-                    <h2>Иванов Иван Иванович</h2>
-                    <ul class="profile-details">
-                        <li><strong>Email:</strong> ivanov@example.com</li>
-                        <li><strong>ВКонтакте:</strong> @ivanov_ivan</li>
-                        <li><strong>Дата регистрации:</strong> 15 января 2025</li>
-                        <li><strong>Всего игр:</strong> 12</li>
-                    </ul>
-                </div>
-            </div>
+    <main class="main-content py-5">
+        <div class="container">
+            <section class="card profile-card">
 
-            <!-- История игр -->
-            <div class="profile-history">
-                <h3>📜 История прошедших квизов</h3>
-
-                <div class="history-list">
-                    <!-- Игра 1 - Золотое место -->
-                    <div class="history-item">
-                        <span class="history-rank rank-gold">🥇</span>
-                        <div class="history-game-info">
-                            <h4>Новогодний Квиз 2025</h4>
-                            <div class="history-game-meta">
-                                <span>📅 31 декабря 2024</span>
-                                <span>⏱️ 45 минут</span>
-                                <span>👥 24 игрока</span>
+                <!-- Блок уведомлений (Ошибки/Успех) -->
+                {% if messages %}
+                    <div class="profile-messages mb-4">
+                        {% for message in messages %}
+                            <div class="alert-jackbox alert-{{ message.tags }}">
+                                <span class="alert-icon">{% if message.tags == 'error' %}⚠️{% else %}✅{% endif %}</span>
+                                <span>{{ message }}</span>
                             </div>
-                        </div>
-                        <div class="history-score">
-                            <span class="score-label">Очки</span>
-                            <span class="score-value">1250</span>
-                        </div>
+                        {% endfor %}
                     </div>
+                {% endif %}
 
-                    <!-- Игра 2 - Серебряное место -->
-                    <div class="history-item">
-                        <span class="history-rank rank-silver">🥈</span>
-                        <div class="history-game-info">
-                            <h4>Киновикторина: Marvel vs DC</h4>
-                            <div class="history-game-meta">
-                                <span>📅 20 декабря 2024</span>
-                                <span>⏱️ 30 минут</span>
-                                <span>👥 18 игроков</span>
-                            </div>
-                        </div>
-                        <div class="history-score">
-                            <span class="score-label">Очки</span>
-                            <span class="score-value">980</span>
-                        </div>
-                    </div>
+                <!-- Шапка профиля -->
+                <div class="profile-header-section">
+                    <a href="{% url 'main:index' %}" class="btn-back-main">← На главную</a>
 
-                    <!-- Игра 3 - Бронзовое место -->
-                    <div class="history-item">
-                        <span class="history-rank rank-bronze">🥉</span>
-                        <div class="history-game-info">
-                            <h4>Музыкальный Квиз: Хиты 90-х</h4>
-                            <div class="history-game-meta">
-                                <span>📅 10 декабря 2024</span>
-                                <span>⏱️ 40 минут</span>
-                                <span>👥 30 игроков</span>
-                            </div>
-                        </div>
-                        <div class="history-score">
-                            <span class="score-label">Очки</span>
-                            <span class="score-value">875</span>
-                        </div>
-                    </div>
+                    <div class="profile-avatar-circle">👤</div>
 
-                    <!-- Игра 4 - Без места -->
-                    <div class="history-item">
-                        <span class="history-rank">🎮</span>
-                        <div class="history-game-info">
-                            <h4>Географический Квиз: Страны Мира</h4>
-                            <div class="history-game-meta">
-                                <span>📅 5 декабря 2024</span>
-                                <span>⏱️ 35 минут</span>
-                                <span>👥 15 игроков</span>
-                            </div>
-                        </div>
-                        <div class="history-score">
-                            <span class="score-label">Очки</span>
-                            <span class="score-value">620</span>
-                        </div>
-                    </div>
-
-                    <!-- Игра 5 -->
-                    <div class="history-item">
-                        <span class="history-rank">🎮</span>
-                        <div class="history-game-info">
-                            <h4>Научный Квиз: Космос</h4>
-                            <div class="history-game-meta">
-                                <span>📅 1 декабря 2024</span>
-                                <span>⏱️ 50 минут</span>
-                                <span>👥 20 игроков</span>
-                            </div>
-                        </div>
-                        <div class="history-score">
-                            <span class="score-label">Очки</span>
-                            <span class="score-value">740</span>
-                        </div>
+                    <!-- Центрированный блок с именем и ролью -->
+                    <div class="profile-title-block text-center">
+                        <h2 class="profile-title">ЛИЧНЫЙ КАБИНЕТ</h2>
+                        <p class="profile-name">{{ user.get_full_name|default:user.username }}</p>
+                        <span class="badge-role">{{ user.profile.role.name|default:"Участник" }}</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Кнопка назад -->
-            <div class="back-btn-container">
-                <a href="../main/index.html" class="btn btn-secondary">← На главную</a>
-            </div>
-        </section>
+                <!-- Навигация по табам -->
+                <ul class="nav nav-tabs profile-tabs" id="profileTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info"
+                                type="button">📋 Информация
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit"
+                                type="button">✏️ Редактировать
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password"
+                                type="button">🔑 Сменить пароль
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats"
+                                type="button">📊 Статистика
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Контент табов -->
+                <div class="tab-content" id="profileTabsContent">
+
+                    <!-- Вкладка: Информация -->
+                    <div class="tab-pane fade show active" id="info" role="tabpanel">
+                        <div class="info-section">
+                            <div class="info-row"><span class="info-label">👤 Логин:</span><span
+                                    class="info-value">{{ user.username }}</span></div>
+                            <div class="info-row"><span class="info-label">📧 Email:</span><span
+                                    class="info-value">{{ user.email|default:"Не указан" }}</span></div>
+                            <div class="info-row"><span class="info-label">👨 Имя:</span><span
+                                    class="info-value">{{ user.first_name|default:"Не указано" }}</span></div>
+                            <div class="info-row"><span class="info-label">👩 Фамилия:</span><span
+                                    class="info-value">{{ user.last_name|default:"Не указано" }}</span></div>
+                            <div class="info-row"><span class="info-label">📅 Регистрация:</span><span
+                                    class="info-value">{{ user.date_joined|date:"d E Y" }}</span></div>
+                            <div class="info-row"><span class="info-label">🎮 Всего игр:</span><span
+                                    class="info-value">{{ total_games|default:0 }}</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Вкладка: Редактирование -->
+                    <div class="tab-pane fade" id="edit" role="tabpanel">
+                        <form method="post" action="{% url 'users:profile_edit' %}" class="profile-form"
+                              id="editProfileForm">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="username" class="form-label">👤 Логин</label>
+                                <input type="text" class="form-control" id="username" name="username"
+                                       value="{{ user.username }}" required minlength="3">
+                                <div class="error-message" id="usernameError"></div>
+                                <div class="form-text">Минимум 3 символа</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="email" class="form-label">📧 Email</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       value="{{ user.email }}">
+                                <div class="error-message" id="emailError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="first_name" class="form-label">👨 Имя</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name"
+                                       value="{{ user.first_name }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="last_name" class="form-label">👩 Фамилия</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name"
+                                       value="{{ user.last_name }}">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-jackbox btn-full">
+                                <span class="btn-icon">💾</span> Сохранить изменения
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Вкладка: Смена пароля -->
+                    <div class="tab-pane fade" id="password" role="tabpanel">
+                        <form method="post" action="{% url 'users:password_change' %}" class="profile-form"
+                              id="passwordChangeForm">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="current_password" class="form-label">🔒 Текущий пароль</label>
+                                <input type="password" class="form-control" id="current_password"
+                                       name="current_password" required>
+                                <div class="error-message" id="currentPasswordError"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="new_password1" class="form-label">🔑 Новый пароль</label>
+                                <input type="password" class="form-control" id="new_password1" name="new_password1"
+                                       required minlength="8">
+                                <div class="error-message" id="newPassword1Error"></div>
+                                <div class="form-text">Минимум 8 символов</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="new_password2" class="form-label">🔐 Подтверждение пароля</label>
+                                <input type="password" class="form-control" id="new_password2" name="new_password2"
+                                       required>
+                                <div class="error-message" id="newPassword2Error"></div>
+                            </div>
+                            <div class="alert-warning">⚠️ После смены пароля все активные сессии будут завершены</div>
+                            <button type="submit" class="btn btn-warning btn-jackbox btn-full">
+                                <span class="btn-icon">🔄</span> Сменить пароль
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Вкладка: Статистика -->
+                    <div class="tab-pane fade" id="stats" role="tabpanel">
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="stat-card">
+                                    <div class="stat-value">{{ total_games|default:0 }}</div>
+                                    <div class="stat-label">🎮 Всего игр</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-card">
+                                    <div class="stat-value">{{ total_score|default:0 }}</div>
+                                    <div class="stat-label">⭐ Общий счёт</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-card">
+                                    <div class="stat-value">{{ best_rank|default:"—" }}</div>
+                                    <div class="stat-label">🏆 Лучшее место</div>
+                                </div>
+                            </div>
+                        </div>
+                        <h4 class="mb-3 text-start">📜 История игр</h4>
+                        {% if game_history %}
+                            <div class="list-group">
+                                {% for game in game_history %}
+                                    <div class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">{{ game.quiz_title }}</h5>
+                                            <small class="text-muted">{{ game.date|date:"d.m.Y" }}</small>
+                                        </div>
+                                        <p class="mb-1">Место: <strong>{{ game.rank }}</strong> | Очки:
+                                            <strong>{{ game.score }}</strong> | Игроков: {{ game.total_players }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info text-center">🎮 Вы ещё не участвовали ни в одной игре</div>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </section>
+        </div>
     </main>
-
 {% endblock %}
 
-
 {% block js %}
-    <script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/profile.js' %}"></script>
 {% endblock %}

@@ -1,99 +1,135 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}ОНЛАЙН-КВИЗ | Вход в систему{% endblock %}
+
 {% block css %}
-    <link rel="stylesheet" href="{% static "css/style.css" %}">
+    <!-- Подключаем стили для страницы авторизации -->
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
 {% endblock %}
 
 {% block header %}
-    <header class="header">
+    <!-- Упрощённый хедер для страницы авторизации -->
+    <header class="header header-simple">
         <div class="logo">
             <span class="logo-icon">🎲</span>
             <h1>ОНЛАЙН-КВИЗ</h1>
         </div>
         <nav class="nav-buttons">
-            <a href="{% url 'main:index' %}" class="btn btn-secondary">
+            <a href="{% url 'main:index' %}" class="btn btn-secondary btn-nav">
                 ← На главную
             </a>
         </nav>
     </header>
-
 {% endblock %}
 
 {% block content %}
-    <main class="main-content">
-        <section class="card auth-card">
-            <h2>Вход в систему</h2>
-            <p class="auth-subtitle">Введите свои учётные данные для продолжения</p>
+    <main class="main-content py-5">
+        <div class="container">
+            <section class="card auth-card">
 
-            <form method="post" class="auth-form" action="{% url 'users:login' %}">
-                {% csrf_token %}
+                <!-- Заголовок -->
+                <h2 class="display-4 fw-bold mb-3 text-gradient-orange">
+                    Вход в систему
+                </h2>
+                <p class="lead text-muted mb-4">
+                    Введите свои учётные данные для продолжения
+                </p>
 
-                <div class="form-group">
-                    <label for="username" class="form-label">
-                        <span class="label-icon">👤</span>
-                        Логин
-                    </label>
-                    <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            class="form-input"
-                            placeholder="Введите логин"
-                            required
-                            autofocus
-                    >
-                </div>
+                <!-- Форма входа -->
+                <form method="post" action="{% url 'users:login' %}" class="auth-form">
+                    {% csrf_token %}
 
-                <div class="form-group">
-                    <label for="password" class="form-label">
-                        <span class="label-icon">🔒</span>
-                        Пароль
-                    </label>
-                    <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            class="form-input"
-                            placeholder="Введите пароль"
-                            required
-                    >
-                </div>
-
-                {% if form.errors %}
-                    <div class="error-message">
-                        <span class="error-icon">⚠️</span>
-                        Неверный логин или пароль. Попробуйте ещё раз.
+                    <!-- Поле логина -->
+                    <div class="form-group mb-3">
+                        <label for="username" class="form-label">
+                            <span class="label-icon">👤</span>
+                            Логин
+                        </label>
+                        <input
+                                type="text"
+                                class="form-control form-input-lg"
+                                id="username"
+                                name="username"
+                                placeholder="Введите ваш логин"
+                                required
+                                autofocus
+                        >
                     </div>
-                {% endif %}
 
-                <button type="submit" class="btn btn-primary btn-full">
-                    <span class="btn-icon">🔑</span>
-                    Войти
-                </button>
-            </form>
+                    <!-- Поле пароля -->
+                    <div class="form-group mb-3">
+                        <label for="password" class="form-label">
+                            <span class="label-icon">🔒</span>
+                            Пароль
+                        </label>
+                        <input
+                                type="password"
+                                class="form-control form-input-lg"
+                                id="password"
+                                name="password"
+                                placeholder="Введите ваш пароль"
+                                required
+                        >
+                    </div>
 
-            <div class="auth-divider">
-                <span>или</span>
-            </div>
+                    <!-- Сообщение об ошибке -->
+                    {% if form.errors %}
+                        <div class="alert alert-danger alert-jackbox" role="alert">
+                            <span class="alert-icon">⚠️</span>
+                            <div>
+                                <strong>Неверный логин или пароль!</strong><br>
+                                <small>Попробуйте ещё раз или восстановите пароль через бота</small>
+                            </div>
+                        </div>
+                    {% endif %}
 
-            <div class="bot-link-section">
-                <p class="bot-link-text">
-                    <span class="info-icon">ℹ️</span>
-                    Ещё нет аккаунта?
-                </p>
-                <a href="https://vk.ru/im?sel=-237393782" target="_blank" class="btn btn-vk btn-full">
-                    Создать аккаунт через бота ВКонтакте
-                </a>
-                <p class="bot-link-hint">
-                    Нажмите кнопку, чтобы перейти в чат с ботом и проверить профиль
-                </p>
-            </div>
-        </section>
+                    <!-- Кнопка входа -->
+                    <button type="submit" class="btn btn-primary btn-jackbox btn-full btn-lg mb-3">
+                        <span class="btn-icon">🔑</span>
+                        Войти
+                    </button>
+
+                </form>
+
+                <!-- Разделитель -->
+                <div class="auth-divider my-4">
+                    <span>или</span>
+                </div>
+
+                <!-- Блок с ботом ВКонтакте -->
+                <div class="bot-link-section p-4 rounded-3">
+                    <div class="bot-link-text mb-3">
+                        <span class="info-icon">ℹ️</span>
+                        Ещё нет аккаунта?
+                    </div>
+
+                    <a
+                            href="https://vk.ru/im?sel=-237393782"
+                            target="_blank"
+                            class="btn btn-vk btn-jackbox btn-full mb-3"
+                    >
+                        Создать аккаунт через бота ВКонтакте
+                    </a>
+
+                    <p class="bot-link-hint mb-0">
+                        💡 Нажмите кнопку, чтобы перейти в чат с ботом и создать аккаунт
+                    </p>
+                </div>
+
+                <!-- Подсказка про сброс пароля -->
+                <div class="mt-4 text-center">
+                    <small class="text-muted">
+                        🔐 Забыли пароль? Сброс осуществляется через бота ВКонтакте
+                    </small>
+                </div>
+
+            </section>
+        </div>
     </main>
-
 {% endblock %}
 
 {% block js %}
-    <script src="{% static 'js/script.js' %}"></script>
+    <!-- Подключаем скрипты для страницы авторизации -->
+    <script src="{% static 'js/login.js' %}"></script>
 {% endblock %}
