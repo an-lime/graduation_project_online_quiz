@@ -178,8 +178,8 @@
 }
 
 .profile-tabs .nav-link:hover {
-    color: var(--primary);
-    background: rgba(255, 222, 89, 0.1);
+    color: var(--text-dark);
+    background: rgba(255, 222, 89, 0.15);
 }
 
 .profile-tabs .nav-link.active {
@@ -421,3 +421,47 @@
         gap: 5px;
     }
 }
+
+.input-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.input-wrapper .form-control {
+    flex: 1;
+}
+
+.btn-verify {
+    background: var(--bg-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    height: 100%; /* Чтобы высота совпадала с полем ввода */
+}
+
+.btn-verify:hover {
+    background: var(--accent-pink);
+    transform: translateY(-2px);
+}
+
+.btn-verify:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.form-control.is-verified {
+    border-color: var(--success) !important;
+    background-color: #f0fff4 !important;
+    box-shadow: 0 0 0 4px rgba(46, 213, 115, 0.2);
+}
+
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }

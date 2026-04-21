@@ -109,7 +109,7 @@ async def hide_password(event: GroupTypes.MessageEvent):
 
 async def reset_password(event: GroupTypes.MessageEvent):
     kb = (Keyboard(inline=True)
-          .add(Callback("✅ Да, сменить", {"action": "confirm_reset"}))
+          .add(Callback("✅ Да, сбросить", {"action": "confirm_reset"}))
           .row()
           .add(Callback("❌ Отмена", {"action": "my_profile"}))
           ).get_json()

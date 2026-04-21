@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}ОНЛАЙН-КВИЗ | Профиль{% endblock %}
+{% block title %}ОНЛАЙН-ВИКТОРИНА | Профиль{% endblock %}
 
 {% block css %}
     <link rel="stylesheet" href="{% static 'css/profile.css' %}">
@@ -95,11 +95,33 @@
                                 <div class="error-message" id="usernameError"></div>
                                 <div class="form-text">Минимум 3 символа</div>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group" id="email-group"
+                                 data-send-url="{% url 'users:send_verify_code' %}"
+                                 data-verify-url="{% url 'users:verify_email_code' %}">
                                 <label for="email" class="form-label">📧 Email</label>
-                                <input type="email" class="form-control" id="email" name="email"
-                                       value="{{ user.email }}">
-                                <div class="error-message" id="emailError"></div>
+
+                                <div class="input-wrapper">
+                                    <input type="email" class="form-control" id="email" name="email"
+                                           value="{{ user.email }}" placeholder="example@mail.com">
+
+                                    <button type="button" id="btn-verify-email" class="btn-verify"
+                                            style="display: none;">
+                                        Проверить
+                                    </button>
+                                </div>
+
+                                <div id="code-section" style="display: none; margin-top: 15px;">
+                                    <label class="form-label small">Код подтверждения</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" class="form-control" id="verification-code"
+                                               placeholder="Введите 6-значный код">
+                                        <button type="button" id="btn-confirm-code" class="btn-verify btn-sm">
+                                            Подтвердить
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="email-status-msg" class="form-text text-muted"></div>
                             </div>
                             <div class="form-group">
                                 <label for="first_name" class="form-label">👨 Имя</label>

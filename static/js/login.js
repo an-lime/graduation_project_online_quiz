@@ -103,13 +103,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 10000);
     }
 
-    // =========================================
-    // 5. ЭФФЕКТ ПЕЧАТИ ДЛЯ ПОЛЯ ЛОГИНА
-    // =========================================
-
-    if (usernameInput && !usernameInput.value) {
-        usernameInput.focus();
-    }
-
     console.log('✅ Все скрипты авторизации инициализированы');
 });

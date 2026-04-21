@@ -19,4 +19,8 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('profile/edit/', views.profile_edit, name='profile_edit'),
     path('profile/password-change/', views.password_change, name='password_change'),
+
+    #     AJAX пути
+    path('ajax/send-code', views.send_verify_code, name='send_verify_code'),
+    path('ajax/verify-code', views.verify_email_code, name='verify_email_code')
 ]
