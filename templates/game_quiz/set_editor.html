@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ОНЛАЙН-КВИЗ | Конструктор вопросов{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/game_quiz/set_editor.css' %}">
+{% endblock %}
+
+{% block content %}
+    <main class="main-content py-5">
+        <div class="container">
+            <section class="card set-editor-card">
+
+                <!-- Шапка: Название набора + Кнопки -->
+                <div class="editor-header">
+                    <a href="{% url 'game_quiz:create_game' %}" class="btn-back-editor">← Назад к игре</a>
+                    <div class="header-center">
+                        <h2 class="editor-title">📝 Конструктор вопросов</h2>
+
+                        <!-- Скрытое поле для ID набора (для редактирования) -->
+                        <input type="hidden" id="set-id" value="{{ question_set.id|default:'' }}">
+
+                        <div class="name-input-wrapper">
+                            <input type="text" id="set-name" class="form-control set-name-input"
+                                   placeholder="Введите название набора вопросов" value="{{ set_name }}" required>
+                            <button type="button" id="btn-save-set" class="btn btn-primary btn-jackbox btn-save-set">
+                                <span class="btn-icon">💾</span> Сохранить набор
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="editor-layout">
+                    <!-- ЛЕВАЯ ЧАСТЬ: Редактор вопроса -->
+                    <div class="editor-left">
+                        <div class="form-group">
+                            <label class="form-label">📖 Текст вопроса</label>
+                            <textarea id="q-text" class="form-control q-text-input" rows="3"
+                                      placeholder="Введите вопрос..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">🔘 Варианты ответов</label>
+                            <div class="options-container" id="options-container">
+                                <!-- Генерируются JS -->
+                            </div>
+                            <button type="button" id="btn-add-option" class="btn-add-option">+ Добавить вариант</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">💡 Пояснение (при правильном ответе)</label>
+                            <textarea id="q-explanation" class="form-control q-explanation-input" rows="2"
+                                      placeholder="Появится после выбора ответа..."></textarea>
+                        </div>
+
+                        <div class="editor-actions">
+                            <button type="button" id="btn-save-question" class="btn btn-primary btn-jackbox">
+                                💾 Сохранить вопрос
+                            </button>
+                            <button type="button" id="btn-clear-form" class="btn btn-secondary btn-jackbox">
+                                🗑️ Очистить
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ПРАВАЯ ЧАСТЬ: Список вопросов -->
+                    <div class="editor-right">
+                        <div class="list-header">
+                            <h3 class="list-title">📚 Вопросы в наборе</h3>
+                            <span class="badge-count" id="q-count">0</span>
+                        </div>
+                        <div class="question-list" id="question-list">
+                            <div class="empty-state">Пока нет вопросов</div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </main>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/game_quiz/set_editor.js' %}"></script>
+{% endblock %}

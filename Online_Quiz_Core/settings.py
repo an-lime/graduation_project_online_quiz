@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'main',
     'users',
+    'game_quiz',
 ]
 
 MIDDLEWARE = [

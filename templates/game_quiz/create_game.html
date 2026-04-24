@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ОНЛАЙН-КВИЗ | Создание игры{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/game_quiz/create_game.css' %}">
+{% endblock %}
+
+{% block content %}
+    <main class="main-content py-5">
+        <div class="container">
+            <section class="card game-card">
+                <div class="game-header">
+                    <span class="header-icon">🎮</span>
+                    <h2 class="game-title">Создание новой игры</h2>
+                    <p class="game-subtitle">Заполните параметры для запуска сессии</p>
+                </div>
+
+                <form class="create-game-form" id="createGameForm" novalidate>
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label for="quiz-select" class="form-label">
+                            <span class="label-icon">🧩</span> Набор вопросов
+                        </label>
+                        <select id="quiz-select" name="quiz" class="form-control" required>
+                            <option value="" disabled selected>-- Выберите квиз --</option>
+
+                            {% if my_sets %}
+                                <optgroup label="📁 Мои наборы">
+                                    {% for qset in my_sets %}
+                                        <option value="{{ qset.id }}">
+                                            {{ qset.name }} ({{ qset.quiz_set_content|length }} вопросов)
+                                        </option>
+                                    {% endfor %}
+                                </optgroup>
+                            {% endif %}
+
+                            {% if public_sets %}
+                                <optgroup label="🌐 Публичные наборы">
+                                    {% for qset in public_sets %}
+                                        <option value="{{ qset.id }}">
+                                            {{ qset.name }} от {{ qset.owner.username }}
+                                            ({{ qset.quiz_set_content|length }} вопросов)
+                                        </option>
+                                    {% endfor %}
+                                </optgroup>
+                            {% endif %}
+                        </select>
+                        <div class="quiz-actions mt-2">
+                            <a href="{% url 'game_quiz:create_set' %}" class="btn btn-secondary btn-sm">➕ Создать
+                                набор</a>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="game-name" class="form-label">
+                            <span class="label-icon">📝</span> Название сессии
+                        </label>
+                        <input type="text" id="game-name" name="game_name" class="form-control"
+                               placeholder="Например: Пятничный квиз" required minlength="3">
+                        <div class="form-text">Минимум 3 символа</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">🎲</span> Код приглашения
+                        </label>
+                        <div class="code-generator-box">
+                            <input type="text" id="host-game-code" class="form-control code-input" readonly
+                                   placeholder="Нажмите для генерации">
+                            <button type="button" id="btn-generate-code" class="btn-code">🎲</button>
+                        </div>
+                        <div class="form-text">Сообщите этот код игрокам для входа в лобби</div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="btn-create-game" class="btn btn-primary btn-jackbox btn-block"
+                                disabled>
+                            <span class="btn-icon">🚀</span> Создать игру
+                        </button>
+                        <a href="{% url 'main:index' %}" class="btn btn-secondary btn-jackbox btn-block">
+                            <span class="btn-icon">↩️</span> Отмена
+                        </a>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </main>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/game_quiz/create_game.js' %}"></script>
+{% endblock %}

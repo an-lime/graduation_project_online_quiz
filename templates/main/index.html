@@ -4,7 +4,7 @@
 {% block title %}ОНЛАЙН-ВИТОРИНА | Главная{% endblock %}
 
 {% block css %}
-    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <link rel="stylesheet" href="{% static 'css/main/index.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -26,7 +26,7 @@
 
                     <!-- Кнопка "Я Ведущий" -->
                     <div class="col-md-5 col-sm-10">
-                        <a href="#" class="role-btn host-btn card h-100 border-3">
+                        <a href="{% url 'game_quiz:create_game' %}" class="role-btn host-btn card h-100 border-3">
                             <div class="card-body d-flex flex-column align-items-center p-4">
                                 <span class="role-icon display-1 mb-3">🎤</span>
                                 <span class="role-title h4 fw-bold mb-2">Я Ведущий</span>
@@ -54,5 +54,5 @@
 {% endblock %}
 
 {% block js %}
-    <script src="{% static 'js/index.js' %}"></script>
+    <script src="{% static 'js/main/index.js' %}"></script>
 {% endblock %}

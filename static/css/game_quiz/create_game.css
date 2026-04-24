@@ -1,0 +1,288 @@
+/* =========================================
+СОЗДАНИЕ ИГРЫ - JACKBOX STYLE
+========================================= */
+.game-card {
+    max-width: 650px;
+    margin: 0 auto;
+    background: var(--card-bg);
+    border-radius: 30px;
+    border: 5px solid var(--primary);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+    0 0 0 8px rgba(255, 222, 89, 0.15);
+    padding: 40px;
+    animation: popIn 0.5s ease;
+    position: relative;
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.game-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.header-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 10px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.game-title {
+    font-size: 2rem;
+    font-weight: 900;
+    margin: 0 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, #ff6b35 0%, #ffa623 50%, #ffde59 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.game-subtitle {
+    color: var(--text-gray);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.create-game-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+}
+
+.label-icon {
+    font-size: 1.1rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 1.05rem;
+    border: 3px solid #ddd;
+    border-radius: 15px;
+    font-weight: 600;
+    background: #fafafa;
+    transition: all 0.3s ease;
+    font-family: var(--font-main);
+}
+
+.form-control:focus {
+    border-color: var(--secondary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(0, 210, 190, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    outline: none;
+}
+
+.form-text {
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    margin-top: 5px;
+    font-weight: 600;
+}
+
+/* --- Генератор кода --- */
+.code-generator-box {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.code-input {
+    flex: 1;
+    font-family: monospace;
+    font-size: 1.2rem;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 2px;
+    background: #f0f0f0;
+    cursor: not-allowed;
+}
+
+.btn-code {
+    background: var(--bg-color);
+    color: white;
+    border: none;
+    width: 60px;
+    height: 54px;
+    border-radius: 15px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+}
+
+.btn-code:hover {
+    background: var(--accent-pink);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+}
+
+.btn-code:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* --- Кнопки --- */
+.btn-jackbox {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 14px 28px;
+    border-radius: 15px;
+    border: 3px solid;
+    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-jackbox:active {
+    transform: translateY(6px);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.btn-jackbox:disabled {
+    background: #ccc;
+    border-color: #bbb;
+    color: #777;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.btn-primary.btn-jackbox {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+    color: var(--text-dark);
+    border-color: var(--primary);
+}
+
+.btn-primary.btn-jackbox:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--primary-hover) 0%, #ffa623 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 0 rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary.btn-jackbox {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: var(--text-dark);
+    border-color: #ddd;
+}
+
+.btn-secondary.btn-jackbox:hover {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 0 rgba(0, 0, 0, 0.2);
+}
+
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+/* --- Валидация --- */
+.form-control.is-invalid {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 4px rgba(255, 71, 87, 0.2);
+}
+
+/* --- Адаптивность --- */
+@media (max-width: 768px) {
+    .game-card {
+        padding: 25px 20px;
+        border-width: 3px;
+    }
+
+    .game-title {
+        font-size: 1.6rem;
+    }
+
+    .header-icon {
+        font-size: 2.5rem;
+    }
+
+    .btn-jackbox {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+    }
+}
+
+/* В файле create_game.css */
+.quiz-select-wrapper {
+    position: relative;
+}
+
+.quiz-select-wrapper select {
+    appearance: none; /* Убираем стандартную стрелку браузера */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%232c0e37' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    padding-right: 40px;
+}
+
+/* Стилизация группы (работает в большинстве современных браузеров) */
+select optgroup {
+    font-weight: 800;
+    color: var(--bg-color);
+    background: #f8f9fa;
+    font-style: normal;
+}
+
+select optgroup option {
+    font-weight: 600;
+    color: var(--text-dark);
+    background: white;
+    padding: 8px 12px;
+}
+
+select optgroup option:hover {
+    background: rgba(255, 222, 89, 0.3);
+}
+
+.quiz-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+}
