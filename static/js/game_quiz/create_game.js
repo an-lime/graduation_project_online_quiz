@@ -1,7 +1,6 @@
 // =========================================
 // СОЗДАНИЕ ИГРЫ - ЛОГИКА
 // =========================================
-
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('createGameForm');
     const quizSelect = document.getElementById('quiz-select');
@@ -9,12 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const codeInput = document.getElementById('host-game-code');
     const generateBtn = document.getElementById('btn-generate-code');
     const submitBtn = document.getElementById('btn-create-game');
+    const btnEditSet = document.getElementById('btn-edit-set');
 
     // =========================================
     // 1. ГЕНЕРАЦИЯ КОДА ПРИГЛАШЕНИЯ
     // =========================================
     function generateCode() {
-        // Исключаем похожие символы (0/O, 1/I/L)
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let code = '';
         for (let i = 0; i < 4; i++) {
@@ -25,63 +24,87 @@ document.addEventListener('DOMContentLoaded', () => {
         validateForm();
     }
 
-    generateBtn.addEventListener('click', generateCode);
+    if (generateBtn) {
+        generateBtn.addEventListener('click', generateCode);
+    }
 
     // =========================================
     // 2. ВАЛИДАЦИЯ ФОРМЫ
     // =========================================
     function validateForm() {
-        const isQuizSelected = quizSelect.value !== '';
-        const isNameValid = gameNameInput.value.trim().length >= 3;
-        const isCodeGenerated = codeInput.value.length === 4;
+        const isQuizSelected = quizSelect && quizSelect.value !== '';
+        const isNameValid = gameNameInput && gameNameInput.value.trim().length >= 3;
+        const isCodeGenerated = codeInput && codeInput.value.length === 4;
 
-        // Визуальная подсветка ошибок
-        if (gameNameInput.value.trim().length > 0 && gameNameInput.value.trim().length < 3) {
-            gameNameInput.classList.add('is-invalid');
-        } else {
-            gameNameInput.classList.remove('is-invalid');
+        if (gameNameInput) {
+            if (gameNameInput.value.trim().length > 0 && gameNameInput.value.trim().length < 3) {
+                gameNameInput.classList.add('is-invalid');
+            } else {
+                gameNameInput.classList.remove('is-invalid');
+            }
         }
 
-        // Активация кнопки создания
-        submitBtn.disabled = !(isQuizSelected && isNameValid && isCodeGenerated);
+        if (submitBtn) {
+            submitBtn.disabled = !(isQuizSelected && isNameValid && isCodeGenerated);
+        }
     }
 
-    quizSelect.addEventListener('change', validateForm);
-    gameNameInput.addEventListener('input', validateForm);
+    if (quizSelect) {
+        quizSelect.addEventListener('change', () => {
+            validateForm();
+            updateEditButton();
+        });
+    }
+
+    if (gameNameInput) {
+        gameNameInput.addEventListener('input', validateForm);
+    }
 
     // =========================================
-    // 3. ОТПРАВКА ФОРМЫ
+    // 3. УПРАВЛЕНИЕ КНОПКОЙ "РЕДАКТИРОВАТЬ"
     // =========================================
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        validateForm();
+    function updateEditButton() {
+        if (!quizSelect || !btnEditSet) return;
 
-        if (submitBtn.disabled) {
-            if (typeof showToast === 'function') showToast('Заполните все поля корректно', 'error');
+        const selectedOption = quizSelect.options[quizSelect.selectedIndex];
+
+        if (!selectedOption || !selectedOption.value || selectedOption.dataset.isMine !== 'true') {
+            btnEditSet.style.display = 'none';
             return;
         }
 
-        // Блокировка кнопки при отправке
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="btn-icon">⏳</span> Создание...';
+        btnEditSet.style.display = 'inline-flex';
+        btnEditSet.href = `/quiz/sets/edit/${quizSelect.value}/`;
+    }
 
-        // Заглушка под AJAX/Redirect
-        setTimeout(() => {
-            if (typeof showToast === 'function') showToast('Игра создана! Переход в лобби...', 'success');
-            // window.location.href = '/quiz/lobby/'; // Раскомментировать при интеграции
-        }, 800);
-    });
+    // =========================================
+    // 4. ОТПРАВКА ФОРМЫ
+    // =========================================
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            validateForm();
 
-    const btnCreate = document.getElementById('btn-create-set');
-    const btnEdit = document.getElementById('btn-edit-set');
+            if (submitBtn && submitBtn.disabled) {
+                if (typeof showToast === 'function') {
+                    showToast('Заполните все поля корректно', 'error');
+                }
+                return;
+            }
 
-    if (quizSelect) {
-        quizSelect.addEventListener('change', function () {
-            const hasValue = this.value !== '';
-            btnCreate.style.display = hasValue ? 'none' : 'inline-flex';
-            btnEdit.style.display = hasValue ? 'inline-flex' : 'none';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="btn-icon">⏳</span> Создание...';
+            }
 
-            btnEdit.href = `/quiz/sets/edit/${this.value}/`;
+            setTimeout(() => {
+                if (typeof showToast === 'function') {
+                    showToast('Игра создана! Переход в лобби...', 'success');
+                }
+            }, 800);
         });
     }
+
+    // Инициализация при загрузке
+    validateForm();
 });

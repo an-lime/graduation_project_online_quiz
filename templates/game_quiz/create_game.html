@@ -30,7 +30,7 @@
                             {% if my_sets %}
                                 <optgroup label="📁 Мои наборы">
                                     {% for qset in my_sets %}
-                                        <option value="{{ qset.id }}">
+                                        <option value="{{ qset.id }}" data-is-mine="true">
                                             {{ qset.name }} ({{ qset.quiz_set_content|length }} вопросов)
                                         </option>
                                     {% endfor %}
@@ -40,7 +40,7 @@
                             {% if public_sets %}
                                 <optgroup label="🌐 Публичные наборы">
                                     {% for qset in public_sets %}
-                                        <option value="{{ qset.id }}">
+                                        <option value="{{ qset.id }}" data-is-mine="false">
                                             {{ qset.name }} от {{ qset.owner.username }}
                                             ({{ qset.quiz_set_content|length }} вопросов)
                                         </option>
@@ -48,9 +48,15 @@
                                 </optgroup>
                             {% endif %}
                         </select>
+
                         <div class="quiz-actions mt-2">
-                            <a href="{% url 'game_quiz:create_set' %}" class="btn btn-secondary btn-sm">➕ Создать
-                                набор</a>
+                            <a href="{% url 'game_quiz:create_set' %}" class="btn btn-secondary btn-sm"
+                               id="btn-create-set">
+                                ➕ Создать набор
+                            </a>
+                            <a href="#" id="btn-edit-set" class="btn btn-warning btn-sm" style="display:none;">
+                                ✏️ Редактировать
+                            </a>
                         </div>
                     </div>
 

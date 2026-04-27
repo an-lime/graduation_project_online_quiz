@@ -30,14 +30,14 @@ def set_editor(request, set_id=None):
         question_set = None
         title = "Создание нового набора"
 
-    initial_questions = []
-    if question_set:
-        initial_questions = question_set.quiz_set_content
+    initial_questions_json = '[]'
+    if question_set and question_set.quiz_set_content:
+        initial_questions_json = json.dumps(question_set.quiz_set_content)
 
     return render(request, 'game_quiz/set_editor.html', {
         'question_set': question_set,
         'title': title,
-        'initial_questions': initial_questions,
+        'initial_questions_json': initial_questions_json,
         'set_name': question_set.name if question_set else ''
     })
 
@@ -70,6 +70,7 @@ def save_question_set(request, set_id=None):
             question_set = QuizQuestionSet.objects.get(id=set_id, owner=request.user)
             question_set.name = name
             question_set.quiz_set_content = questions
+            question_set.save()
         else:
             question_set = QuizQuestionSet.objects.create(
                 owner=request.user,

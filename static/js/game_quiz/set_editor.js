@@ -4,11 +4,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     let questions = [];
     let currentEditIndex = -1;
-    const isEditing = document.getElementById('set-id').value !== '';
+
+    const setIdElement = document.getElementById('set-id');
+    const isEditing = setIdElement && setIdElement.value !== '';
 
     // DOM Elements
     const els = {
-        setId: document.getElementById('set-id'),
+        setId: setIdElement,
         nameInput: document.getElementById('set-name'),
         qText: document.getElementById('q-text'),
         explanation: document.getElementById('q-explanation'),
@@ -21,12 +23,14 @@ document.addEventListener('DOMContentLoaded', () => {
         count: document.getElementById('q-count')
     };
 
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
 
     // =========================================
     // 1. УПРАВЛЕНИЕ ВАРИАНТАМИ ОТВЕТА
     // =========================================
     function addOptionRow(value = '', isCorrect = false) {
+        if (!els.optionsContainer) return;
+
         const row = document.createElement('div');
         row.className = `option-row ${isCorrect ? 'correct' : ''}`;
         row.innerHTML = `
@@ -35,24 +39,38 @@ document.addEventListener('DOMContentLoaded', () => {
             <button type="button" class="btn-remove-option">×</button>
         `;
 
-        row.querySelector('.option-radio').addEventListener('change', () => {
-            document.querySelectorAll('.option-row').forEach(r => r.classList.remove('correct'));
-            row.classList.add('correct');
-        });
+        const radioBtn = row.querySelector('.option-radio');
+        if (radioBtn) {
+            radioBtn.addEventListener('change', () => {
+                document.querySelectorAll('.option-row').forEach(r => r.classList.remove('correct'));
+                row.classList.add('correct');
+            });
+        }
 
-        row.querySelector('.btn-remove-option').addEventListener('click', () => {
-            if (document.querySelectorAll('.option-row').length > 2) {
-                row.remove();
-            } else {
-                if (typeof showToast === 'function') showToast('Минимум 2 варианта ответа', 'warning');
-            }
-        });
+        const removeBtn = row.querySelector('.btn-remove-option');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => {
+                if (document.querySelectorAll('.option-row').length > 2) {
+                    row.remove();
+                } else {
+                    if (typeof showToast === 'function') {
+                        showToast('Минимум 2 варианта ответа', 'warning');
+                    }
+                }
+            });
+        }
 
         els.optionsContainer.appendChild(row);
     }
 
-    els.btnAddOption.addEventListener('click', () => addOptionRow());
-    for (let i = 0; i < 4; i++) addOptionRow();
+    if (els.btnAddOption) {
+        els.btnAddOption.addEventListener('click', () => addOptionRow());
+    }
+
+    // Инициализация 2 пустых вариантов
+    for (let i = 0; i < 2; i++) {
+        addOptionRow();
+    }
 
     // =========================================
     // 2. СБОР ДАННЫХ ИЗ ФОРМЫ
@@ -62,17 +80,20 @@ document.addEventListener('DOMContentLoaded', () => {
         let correctIndex = -1;
 
         document.querySelectorAll('.option-row').forEach((row, idx) => {
-            const text = row.querySelector('.option-input').value.trim();
-            const isCorrect = row.querySelector('.option-radio').checked;
+            const input = row.querySelector('.option-input');
+            const radio = row.querySelector('.option-radio');
+            const text = input ? input.value.trim() : '';
+            const isCorrect = radio ? radio.checked : false;
+
             if (text) options.push(text);
             if (isCorrect) correctIndex = options.length - 1;
         });
 
         return {
-            question: els.qText.value.trim(),
+            question: els.qText ? els.qText.value.trim() : '',
             options: options,
             correctIndex: correctIndex,
-            explanation: els.explanation.value.trim()
+            explanation: els.explanation ? els.explanation.value.trim() : ''
         };
     }
 
@@ -80,6 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. РЕНДЕР СПИСКА ВОПРОСОВ
     // =========================================
     function renderList() {
+        if (!els.list || !els.count) return;
+
         els.list.innerHTML = '';
         els.count.textContent = questions.length;
 
@@ -92,7 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = document.createElement('div');
             item.className = `q-item ${idx === currentEditIndex ? 'active' : ''}`;
             item.innerHTML = `
-                <span class="q-item-text"><span class="q-item-num">#${idx + 1}</span> ${q.question}</span>
+                <span class="q-item-text">
+                    <span class="q-item-num">#${idx + 1}</span> ${q.question}
+                </span>
                 <span style="color: var(--success); font-weight:bold;">✓</span>
             `;
             item.addEventListener('click', () => loadQuestion(idx));
@@ -104,16 +129,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. ЗАГРУЗКА ВОПРОСА В РЕДАКТОР
     // =========================================
     function loadQuestion(idx) {
+        if (idx < 0 || idx >= questions.length) return;
+
         currentEditIndex = idx;
         const q = questions[idx];
 
-        els.qText.value = q.question;
-        els.explanation.value = q.explanation || '';
+        if (els.qText) els.qText.value = q.question || '';
+        if (els.explanation) els.explanation.value = q.explanation || '';
 
-        els.optionsContainer.innerHTML = '';
-        q.options.forEach((opt, i) => {
-            addOptionRow(opt, i === q.correctIndex);
-        });
+        if (els.optionsContainer) {
+            els.optionsContainer.innerHTML = '';
+            if (q.options && Array.isArray(q.options)) {
+                q.options.forEach((opt, i) => {
+                    addOptionRow(opt, i === q.correctIndex);
+                });
+            }
+        }
 
         renderList();
     }
@@ -121,122 +152,147 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================
     // 5. СОХРАНЕНИЕ ВОПРОСА
     // =========================================
-    els.btnSaveQuestion.addEventListener('click', () => {
-        const data = getFormData();
+    if (els.btnSaveQuestion) {
+        els.btnSaveQuestion.addEventListener('click', () => {
+            const data = getFormData();
 
-        if (!data.question) {
-            if (typeof showToast === 'function') showToast('Введите текст вопроса', 'error');
-            els.qText.focus();
-            return;
-        }
-        if (data.options.length < 2) {
-            if (typeof showToast === 'function') showToast('Нужно минимум 2 варианта ответа', 'error');
-            return;
-        }
-        if (data.correctIndex === -1) {
-            if (typeof showToast === 'function') showToast('Отметьте правильный ответ галочкой', 'error');
-            return;
-        }
+            if (!data.question) {
+                if (typeof showToast === 'function') showToast('Введите текст вопроса', 'error');
+                if (els.qText) els.qText.focus();
+                return;
+            }
+            if (data.options.length < 2) {
+                if (typeof showToast === 'function') showToast('Нужно минимум 2 варианта ответа', 'error');
+                return;
+            }
+            if (data.correctIndex === -1) {
+                if (typeof showToast === 'function') showToast('Отметьте правильный ответ галочкой', 'error');
+                return;
+            }
 
-        if (currentEditIndex !== -1) {
-            questions[currentEditIndex] = data;
-        } else {
-            questions.push(data);
-            currentEditIndex = questions.length - 1;
-        }
+            if (currentEditIndex !== -1) {
+                questions[currentEditIndex] = data;
+            } else {
+                questions.push(data);
+                currentEditIndex = questions.length - 1;
+            }
 
-        clearForm();
-        renderList();
-        if (typeof showToast === 'function') showToast('Вопрос сохранён в набор!', 'success');
-    });
+            clearForm();
+            renderList();
+            if (typeof showToast === 'function') showToast('Вопрос сохранён в набор!', 'success');
+        });
+    }
 
     // =========================================
     // 6. ОЧИСТКА ФОРМЫ
     // =========================================
     function clearForm() {
         currentEditIndex = -1;
-        els.qText.value = '';
-        els.explanation.value = '';
-        els.optionsContainer.innerHTML = '';
-        for (let i = 0; i < 4; i++) addOptionRow();
+        if (els.qText) els.qText.value = '';
+        if (els.explanation) els.explanation.value = '';
+        if (els.optionsContainer) {
+            els.optionsContainer.innerHTML = '';
+            for (let i = 0; i < 2; i++) {
+                addOptionRow();
+            }
+        }
         renderList();
     }
 
-    els.btnClear.addEventListener('click', clearForm);
+    if (els.btnClear) {
+        els.btnClear.addEventListener('click', clearForm);
+    }
 
     // =========================================
     // 7. СОХРАНЕНИЕ НАБОРА НА СЕРВЕР (AJAX)
     // =========================================
-    els.btnSaveSet.addEventListener('click', () => {
-        const setName = els.nameInput.value.trim();
+    if (els.btnSaveSet) {
+        els.btnSaveSet.addEventListener('click', () => {
+            const setName = els.nameInput ? els.nameInput.value.trim() : '';
 
-        // Валидация названия
-        if (!setName) {
-            if (typeof showToast === 'function') showToast('Введите название набора вопросов', 'error');
-            els.nameInput.focus();
-            return;
-        }
-
-        // Валидация наличия вопросов
-        if (questions.length === 0) {
-            if (typeof showToast === 'function') showToast('Добавьте хотя бы один вопрос', 'error');
-            return;
-        }
-
-        // Блокировка кнопки при отправке
-        els.btnSaveSet.disabled = true;
-        els.btnSaveSet.innerHTML = '<span class="btn-icon">⏳</span> Сохранение...';
-
-        const payload = {
-            name: setName,
-            questions: questions
-        };
-
-        const url = isEditing
-            ? `/quiz/sets/edit/${els.setId.value}/save/`
-            : '/quiz/sets/new/save/';
-
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify(payload)
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    if (typeof showToast === 'function') showToast(data.message || 'Набор успешно сохранён!', 'success');
-                    // Обновляем ID для последующих сохранений
-                    if (data.set_id) {
-                        els.setId.value = data.set_id;
-                    }
-                } else {
-                    if (typeof showToast === 'function') showToast(data.error || 'Ошибка сохранения', 'error');
+            if (!setName) {
+                if (typeof showToast === 'function') {
+                    showToast('Введите название набора вопросов', 'error');
                 }
+                if (els.nameInput) els.nameInput.focus();
+                return;
+            }
+
+            if (questions.length === 0) {
+                if (typeof showToast === 'function') {
+                    showToast('Добавьте хотя бы один вопрос', 'error');
+                }
+                return;
+            }
+
+            els.btnSaveSet.disabled = true;
+            els.btnSaveSet.innerHTML = '<span class="btn-icon">⏳</span> Сохранение...';
+
+            const payload = {
+                name: setName,
+                questions: questions
+            };
+
+            const setIdValue = els.setId ? els.setId.value : '';
+            const url = setIdValue && isEditing
+                ? `/quiz/sets/edit/${setIdValue}/save/`
+                : '/quiz/sets/new/save/';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(payload)
             })
-            .catch(error => {
-                console.error('Error:', error);
-                if (typeof showToast === 'function') showToast('Произошла ошибка сети', 'error');
-            })
-            .finally(() => {
-                els.btnSaveSet.disabled = false;
-                els.btnSaveSet.innerHTML = '<span class="btn-icon">💾</span> Сохранить набор';
-            });
-    });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof showToast === 'function') {
+                            showToast(data.message || 'Набор успешно сохранён!', 'success');
+                        }
+                        if (data.set_id && els.setId) {
+                            els.setId.value = data.set_id;
+                        }
+                    } else {
+                        if (typeof showToast === 'function') {
+                            showToast(data.error || 'Ошибка сохранения', 'error');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (typeof showToast === 'function') {
+                        showToast('Произошла ошибка сети', 'error');
+                    }
+                })
+                .finally(() => {
+                    els.btnSaveSet.disabled = false;
+                    els.btnSaveSet.innerHTML = '<span class="btn-icon">💾</span> Сохранить набор';
+                });
+        });
+    }
 
     // =========================================
     // 8. ИНИЦИАЛИЗАЦИЯ (загрузка существующих вопросов)
     // =========================================
-    const initialDataEl = document.getElementById('initial-data');
-    if (initialDataEl) {
-        const initialQuestions = JSON.parse(initialDataEl.dataset.questions || '[]');
-        if (initialQuestions.length > 0) {
-            questions = initialQuestions;
-            currentEditIndex = -1;
-            renderList();
+    const initialJsonInput = document.getElementById('initial-questions-json');
+
+    if (initialJsonInput && initialJsonInput.value) {
+        try {
+            // Парсим валидный JSON из скрытого поля
+            const loadedQuestions = JSON.parse(initialJsonInput.value);
+
+            if (Array.isArray(loadedQuestions) && loadedQuestions.length > 0) {
+                questions = loadedQuestions;
+                currentEditIndex = -1;
+                console.log(`✅ Загружено ${questions.length} вопросов из набора`);
+            }
+        } catch (e) {
+            console.error('Ошибка при загрузке вопросов:', e);
+            console.log('Сырые данные:', initialJsonInput.value);
         }
     }
 

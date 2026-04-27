@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}ОНЛАЙН-КВИЗ | Конструктор вопросов{% endblock %}
+{% block title %}ОНЛАЙН-КВИЗ | {{ title }} {% endblock %}
 
 {% block css %}
     <link rel="stylesheet" href="{% static 'css/game_quiz/set_editor.css' %}">
@@ -12,13 +12,11 @@
         <div class="container">
             <section class="card set-editor-card">
 
-                <!-- Шапка: Название набора + Кнопки -->
                 <div class="editor-header">
                     <a href="{% url 'game_quiz:create_game' %}" class="btn-back-editor">← Назад к игре</a>
                     <div class="header-center">
                         <h2 class="editor-title">📝 Конструктор вопросов</h2>
 
-                        <!-- Скрытое поле для ID набора (для редактирования) -->
                         <input type="hidden" id="set-id" value="{{ question_set.id|default:'' }}">
 
                         <div class="name-input-wrapper">
@@ -32,7 +30,6 @@
                 </div>
 
                 <div class="editor-layout">
-                    <!-- ЛЕВАЯ ЧАСТЬ: Редактор вопроса -->
                     <div class="editor-left">
                         <div class="form-group">
                             <label class="form-label">📖 Текст вопроса</label>
@@ -42,9 +39,7 @@
 
                         <div class="form-group">
                             <label class="form-label">🔘 Варианты ответов</label>
-                            <div class="options-container" id="options-container">
-                                <!-- Генерируются JS -->
-                            </div>
+                            <div class="options-container" id="options-container"></div>
                             <button type="button" id="btn-add-option" class="btn-add-option">+ Добавить вариант</button>
                         </div>
 
@@ -64,17 +59,18 @@
                         </div>
                     </div>
 
-                    <!-- ПРАВАЯ ЧАСТЬ: Список вопросов -->
                     <div class="editor-right">
                         <div class="list-header">
                             <h3 class="list-title">📚 Вопросы в наборе</h3>
                             <span class="badge-count" id="q-count">0</span>
                         </div>
                         <div class="question-list" id="question-list">
-                            <div class="empty-state">Пока нет вопросов</div>
+                            <div class="empty-state">Пока нет вопросов.<br>Добавьте первый слева 👈</div>
                         </div>
                     </div>
                 </div>
+
+                <input type="hidden" id="initial-questions-json" value='{{ initial_questions_json|safe }}'>
 
             </section>
         </div>
