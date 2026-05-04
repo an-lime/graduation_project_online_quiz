@@ -27,6 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    headerLogo = document.getElementById('header-logo-div');
+
+    headerLogo.addEventListener('click', () => {
+        window.location.href = '/'
+    })
 });
 
 function showToast(message, type = 'info') {

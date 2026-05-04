@@ -9,7 +9,7 @@ from .callback_handlers.main_callback_handler import my_profile, create_profile,
 main_labeler = BotLabeler()
 
 
-@main_labeler.message(text="Начать")
+@main_labeler.message(text=["Начать", "начать"])
 async def start_command(message: Message):
     kb = create_main_menu_keyboard()
 

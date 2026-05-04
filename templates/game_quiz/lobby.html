@@ -1,63 +1,101 @@
-<!DOCTYPE html>
-<html lang="ru">
+{% extends 'base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ОНЛАЙН-КВИЗ | Лобби</title>
-    <link rel="stylesheet" href="../styles/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
-</head>
+{% block title %}ОНЛАЙН-КВИЗ | Лобби игры{% endblock %}
 
-<body>
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/game_quiz/lobby.css' %}">
+{% endblock %}
 
-    <div class="bg-shape shape-1"></div>
-
-    <div class="container">
-        <main class="main-content">
+{% block content %}
+    <main class="main-content py-5">
+        <div class="container">
             <section class="card lobby-card">
+
+                <!-- Шапка: Название + Выход -->
                 <div class="lobby-header">
-                    <h2>Комната создана!</h2>
-                    <a href="../main/index.html" class="btn btn-secondary" style="width:auto; margin:0;">✕ Выход</a>
+                    <div class="header-left">
+                        <span class="header-icon">🎮</span>
+                        <h2 class="lobby-title">Лобби игры</h2>
+                    </div>
+                    <a href="{% url 'game_quiz:create_game' %}" class="btn btn-exit" title="Выйти из лобби">
+                        ✕
+                    </a>
                 </div>
 
-                <div class="lobby-body">
-                    <p class="lobby-status">● Ожидание подключения игроков...</p>
+                <!-- Статус и код комнаты -->
+                <div class="lobby-status-section">
+                    <div class="status-badge waiting">
+                        <span class="status-dot"></span>
+                        Ожидание игроков...
+                    </div>
 
-                    <div class="code-display" onclick="copyGameCode()" title="Нажмите для копирования">
+                    <div class="code-section" id="code-section" onclick="copyGameCode()"
+                         title="Нажмите для копирования">
                         <span class="code-label">Код комнаты:</span>
-                        <span id="lobby-code" class="code-value">ABCD</span>
-                    </div>
-
-                    <div class="lobby-info">
-                        <p>📱 Игроки вводят этот код в Telegram-боте</p>
-                        <p>👥 Подключено игроков: <span id="player-count">0</span></p>
-                        <p>📋 Выбранный квиз: <strong id="selected-quiz">Общие знания</strong></p>
-                    </div>
-
-                    <div class="lobby-actions">
-                        <form action="game_view.html" method="GET">
-                            <button type="submit" class="btn btn-primary btn-block" id="start-btn" disabled>
-                                🚀 Начать игру
-                            </button>
-                        </form>
-                        <button type="button" class="btn btn-secondary btn-block" onclick="alert('Настройки комнаты')">
-                            ⚙ Настройки
-                        </button>
-                    </div>
-
-                    <div class="player-list-preview">
-                        <h4>Список игроков:</h4>
-                        <ul id="player-list" class="player-list">
-                            <li class="player-item empty">Ожидание игроков...</li>
-                        </ul>
+                        <span id="lobby-code" class="code-value">{{ game_code|default:"ABCD" }}</span>
+                        <span class="code-hint">📋 Скопировать</span>
                     </div>
                 </div>
+
+                <!-- Информация об игре -->
+                <div class="lobby-info-grid">
+                    <div class="info-card">
+                        <span class="info-icon">👥</span>
+                        <div class="info-content">
+                            <span class="info-label">Игроков</span>
+                            <span id="player-count" class="info-value">0</span>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-icon">🧩</span>
+                        <div class="info-content">
+                            <span class="info-label">Квиз</span>
+                            <span class="info-value">{{ quiz_name|default:"Общие знания" }}</span>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-icon">👤</span>
+                        <div class="info-content">
+                            <span class="info-label">Ведущий</span>
+                            <span class="info-value">{{ request.user.username }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Список игроков -->
+                <div class="player-list-section">
+                    <h3 class="section-title">🎯 Участники</h3>
+                    <ul id="player-list" class="player-list">
+                        <li class="player-item empty">
+                            <span class="player-avatar placeholder">⏳</span>
+                            <span class="player-name">Ожидание подключения...</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Кнопки управления -->
+                <div class="lobby-actions">
+                    <button type="button" id="btn-start-game" class="btn btn-primary btn-jackbox btn-block" disabled>
+                        <span class="btn-icon">🚀</span> Начать игру
+                    </button>
+                    <button type="button" id="btn-settings" class="btn btn-secondary btn-jackbox btn-block">
+                        <span class="btn-icon">⚙️</span> Настройки
+                    </button>
+                </div>
+
+                <!-- Скрытые данные для JS -->
+                <div id="lobby-data"
+                     data-game-code="{{ game_code }}"
+                     data-min-players="2"
+                     style="display:none;">
+                </div>
+
             </section>
-        </main>
-    </div>
+        </div>
+    </main>
+{% endblock %}
 
-    <script src="../scripts/script.js"></script>
-</body>
-
-</html>
+{% block js %}
+    <script src="{% static 'js/game_quiz/lobby.js' %}"></script>
+{% endblock %}

@@ -31,7 +31,7 @@
                                 <optgroup label="📁 Мои наборы">
                                     {% for qset in my_sets %}
                                         <option value="{{ qset.id }}" data-is-mine="true">
-                                            {{ qset.name }} ({{ qset.quiz_set_content|length }} вопросов)
+                                            {{ qset.name }} (Вопросов: {{ qset.quiz_set_content|length }})
                                         </option>
                                     {% endfor %}
                                 </optgroup>
@@ -41,8 +41,8 @@
                                 <optgroup label="🌐 Публичные наборы">
                                     {% for qset in public_sets %}
                                         <option value="{{ qset.id }}" data-is-mine="false">
-                                            {{ qset.name }} от {{ qset.owner.username }}
-                                            ({{ qset.quiz_set_content|length }} вопросов)
+                                            {{ qset.name }} от {{ qset.owner.first_name }}
+                                            (Вопросов: {{ qset.quiz_set_content|length }})
                                         </option>
                                     {% endfor %}
                                 </optgroup>
@@ -67,6 +67,21 @@
                         <input type="text" id="game-name" name="game_name" class="form-control"
                                placeholder="Например: Пятничный квиз" required minlength="3">
                         <div class="form-text">Минимум 3 символа</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <span class="label-icon">👁️</span> Видимость игры
+                        </label>
+                        <div class="visibility-wrapper">
+                            <span class="vis-label" id="vis-private">Приватная</span>
+                            <label class="switch">
+                                <input type="checkbox" id="game-visibility" name="is_public">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="vis-label" id="vis-public">Публичная</span>
+                        </div>
+                        <div class="form-text">Публичные игры будут видны в общем списке доступных сессий</div>
                     </div>
 
                     <div class="form-group">

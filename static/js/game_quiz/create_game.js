@@ -92,19 +92,85 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Сбор данных формы
+            const formData = {
+                quiz_set_id: quizSelect.value,
+                game_name: gameNameInput.value.trim(),
+                game_code: codeInput.value,
+                is_public: visToggle ? visToggle.checked : false
+            };
+
+            // Блокировка кнопки при отправке
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span class="btn-icon">⏳</span> Создание...';
             }
 
-            setTimeout(() => {
-                if (typeof showToast === 'function') {
-                    showToast('Игра создана! Переход в лобби...', 'success');
-                }
-            }, 800);
+            // Отправка AJAX-запроса
+            fetch('/quiz/create-game-ajax/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof showToast === 'function') {
+                            showToast('🎮 Игра создана! Переход в лобби...', 'success');
+                        }
+                        // Редирект в лобби с кодом комнаты
+                        setTimeout(() => {
+                            window.location.href = `/quiz/lobby/${data.game_code}/`;
+                        }, 1000);
+                    } else {
+                        if (typeof showToast === 'function') {
+                            console.log(data.error)
+                            showToast(data.error || 'Ошибка создания игры', 'error');
+                        }
+                        // Разблокировка кнопки при ошибке
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '<span class="btn-icon">🚀</span> Создать игру';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (typeof showToast === 'function') {
+                        showToast('Произошла ошибка сети', 'error');
+                    }
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<span class="btn-icon">🚀</span> Создать игру';
+                    }
+                });
         });
     }
 
-    // Инициализация при загрузке
-    validateForm();
+    // =========================================
+    // 5. ПЕРЕКЛЮЧАТЕЛЬ ВИДИМОСТИ
+    // =========================================
+    const visToggle = document.getElementById('game-visibility');
+    const labelPrivate = document.getElementById('vis-private');
+    const labelPublic = document.getElementById('vis-public');
+
+    function updateVisLabels() {
+        if (!visToggle) return;
+        if (visToggle.checked) {
+            labelPublic.classList.add('active');
+            labelPrivate.classList.remove('active');
+        } else {
+            labelPrivate.classList.add('active');
+            labelPublic.classList.remove('active');
+        }
+    }
+
+    if (visToggle) {
+        visToggle.addEventListener('change', updateVisLabels);
+        updateVisLabels(); // Инициализация при загрузке
+    }
 });

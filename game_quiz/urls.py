@@ -12,4 +12,6 @@ urlpatterns = [
     path('sets/new/save/', views.save_question_set, name='save_new_set'),
     path('sets/edit/<int:set_id>/', views.set_editor, name='edit_set'),
     path('sets/edit/<int:set_id>/save/', views.save_question_set, name='save_set'),
+    path('lobby/<str:code>/', views.lobby, name='lobby'),
+    path('create-game-ajax/', views.create_game_ajax, name='create_game_ajax'),
 ]

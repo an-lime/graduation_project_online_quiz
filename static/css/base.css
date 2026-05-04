@@ -61,6 +61,10 @@ body {
 ХЕДЕР
 ========================================= */
 
+#header-logo-div:hover {
+    cursor: pointer;
+}
+
 .header {
     display: flex;
     justify-content: space-between;

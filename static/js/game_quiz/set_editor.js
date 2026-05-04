@@ -26,6 +26,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
 
     // =========================================
+    // ПЕРЕКЛЮЧАТЕЛЬ ВИДИМОСТИ
+    // =========================================
+
+    const visPrivateBtn = document.getElementById('vis-private-btn');
+    const visPublicBtn = document.getElementById('vis-public-btn');
+    const isPublicInput = document.getElementById('is-public');
+    const visHintText = document.getElementById('vis-hint-text');
+
+    function updateVisibilityUI() {
+        const isPublic = isPublicInput.value.toLowerCase() === 'true';
+
+        if (isPublic) {
+            visPublicBtn.classList.add('active');
+            visPrivateBtn.classList.remove('active');
+            visHintText.textContent = '🌐 Публичный набор будет виден всем пользователям';
+        } else {
+            visPrivateBtn.classList.add('active');
+            visPublicBtn.classList.remove('active');
+            visHintText.textContent = '🔒 Приватный набор виден только вам';
+            visHintText.style.color = 'var(--text-gray)';
+        }
+    }
+
+    if (visPrivateBtn) {
+        visPrivateBtn.addEventListener('click', () => {
+            isPublicInput.value = 'false';
+            updateVisibilityUI();
+        });
+    }
+
+    if (visPublicBtn) {
+        visPublicBtn.addEventListener('click', () => {
+            isPublicInput.value = 'true';
+            updateVisibilityUI();
+        });
+    }
+
+    // Инициализация
+    updateVisibilityUI();
+
+    // =========================================
     // 1. УПРАВЛЕНИЕ ВАРИАНТАМИ ОТВЕТА
     // =========================================
     function addOptionRow(value = '', isCorrect = false) {
@@ -101,8 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. РЕНДЕР СПИСКА ВОПРОСОВ
     // =========================================
     function renderList() {
-        if (!els.list || !els.count) return;
-
         els.list.innerHTML = '';
         els.count.textContent = questions.length;
 
@@ -114,13 +153,24 @@ document.addEventListener('DOMContentLoaded', () => {
         questions.forEach((q, idx) => {
             const item = document.createElement('div');
             item.className = `q-item ${idx === currentEditIndex ? 'active' : ''}`;
+
+            // Добавляем кнопку удаления
             item.innerHTML = `
-                <span class="q-item-text">
-                    <span class="q-item-num">#${idx + 1}</span> ${q.question}
-                </span>
-                <span style="color: var(--success); font-weight:bold;">✓</span>
-            `;
-            item.addEventListener('click', () => loadQuestion(idx));
+            <span class="q-item-text">
+                <span class="q-item-num">#${idx + 1}</span> ${q.question}
+            </span>
+            <button type="button" class="btn-delete-q" title="Удалить вопрос">🗑️</button>
+        `;
+
+            // Клик по тексту вопроса → загрузка в редактор
+            item.querySelector('.q-item-text').addEventListener('click', () => loadQuestion(idx));
+
+            // Клик по корзине → удаление
+            item.querySelector('.btn-delete-q').addEventListener('click', (e) => {
+                e.stopPropagation(); // Чтобы не срабатывал loadQuestion
+                deleteQuestion(idx);
+            });
+
             els.list.appendChild(item);
         });
     }
@@ -184,6 +234,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================
+    // 5.1. УДАЛЕНИЕ ВОПРОСА
+    // =========================================
+    function deleteQuestion(idx) {
+        if (!confirm('Удалить этот вопрос из набора?')) return;
+
+        questions.splice(idx, 1); // Удаляем из массива
+
+        // Корректируем индекс редактируемого вопроса
+        if (idx === currentEditIndex) {
+            currentEditIndex = -1;
+            clearForm(); // Очищаем редактор, т.к. текущий вопрос удалён
+        } else if (idx < currentEditIndex) {
+            currentEditIndex--; // Сдвигаем индекс назад, если удалили вопрос выше
+        }
+
+        renderList();
+        if (typeof showToast === 'function') showToast('Вопрос удалён из набора', 'info');
+    }
+
+    // =========================================
     // 6. ОЧИСТКА ФОРМЫ
     // =========================================
     function clearForm() {
@@ -230,7 +300,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const payload = {
                 name: setName,
-                questions: questions
+                questions: questions,
+                is_public: isPublicInput.value === 'true'
             };
 
             const setIdValue = els.setId ? els.setId.value : '';
@@ -252,6 +323,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (data.success) {
                         if (typeof showToast === 'function') {
                             showToast(data.message || 'Набор успешно сохранён!', 'success');
+
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000)
                         }
                         if (data.set_id && els.setId) {
                             els.setId.value = data.set_id;
@@ -259,6 +334,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         if (typeof showToast === 'function') {
                             showToast(data.error || 'Ошибка сохранения', 'error');
+
+                            els.btnSaveSet.disabled = false;
+                            els.btnSaveSet.innerHTML = '<span class="btn-icon">💾</span> Сохранить набор';
                         }
                     }
                 })
@@ -268,10 +346,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         showToast('Произошла ошибка сети', 'error');
                     }
                 })
-                .finally(() => {
-                    els.btnSaveSet.disabled = false;
-                    els.btnSaveSet.innerHTML = '<span class="btn-icon">💾</span> Сохранить набор';
-                });
         });
     }
 
