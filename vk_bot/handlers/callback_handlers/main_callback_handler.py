@@ -1,3 +1,4 @@
+import logging
 import random
 import string
 from datetime import timedelta
@@ -13,6 +14,8 @@ from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
 from vk_bot.utils.db import create_user_and_profile
 from vk_bot.utils.db import get_current_user
 from vk_bot.utils.support_functions import generate_event_random_id
+
+logger = logging.getLogger(__name__)
 
 
 async def go_main(event: GroupTypes.MessageEvent):

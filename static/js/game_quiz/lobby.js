@@ -1,5 +1,5 @@
 // =========================================
-// ЛОББИ ИГРЫ - ЛОГИКА
+// ЛОББИ ИГРЫ - ЛОГИКА С WEBSOCKET
 // =========================================
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
@@ -21,13 +21,159 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Состояние лобби
     const state = {
-        players: [],
-        isHost: true, // В реальном проекте проверять через бэкенд
-        gameStarted: false
+        players: new Set(['{{ game.owner.username }}']), // Ведущий уже в списке
+        isHost: true,
+        gameStarted: false,
+        ws: null,
+        reconnectAttempts: 0,
+        maxReconnectAttempts: 5
     };
 
     // =========================================
-    // 1. КОПИРОВАНИЕ КОДА КОМНАТЫ
+    // 1. WEBSOCKET ПОДКЛЮЧЕНИЕ
+    // =========================================
+    function connectWebSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/lobby/${config.gameCode}/`;
+
+        console.log('🔌 Connecting to WebSocket:', wsUrl);
+        state.ws = new WebSocket(wsUrl);
+
+        state.ws.onopen = () => {
+            console.log('✅ WebSocket connected');
+            state.reconnectAttempts = 0;
+        };
+
+        state.ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            handleWebSocketMessage(data);
+        };
+
+        state.ws.onclose = () => {
+            console.log('❌ WebSocket disconnected');
+            // Попытка переподключения
+            if (state.reconnectAttempts < state.maxReconnectAttempts) {
+                state.reconnectAttempts++;
+                const delay = Math.min(2000 * state.reconnectAttempts, 10000);
+                console.log(`🔄 Reconnecting... (${state.reconnectAttempts}/${state.maxReconnectAttempts}) in ${delay}ms`);
+                setTimeout(() => connectWebSocket(), delay);
+            } else {
+                showToast('⚠️ Потеряно соединение с сервером', 'warning');
+            }
+        };
+
+        state.ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+    }
+
+    function handleWebSocketMessage(data) {
+        switch (data.type) {
+            case 'participants_list':
+                // Инициализация списка участников (полный список при подключении)
+                initializeParticipants(data.participants);
+                break;
+
+            case 'participant_joined':
+                handleParticipantJoined(data.username, data.is_host);
+                break;
+
+            case 'participant_left':
+                handleParticipantLeft(data.username);
+                break;
+
+            case 'game_started':
+                handleGameStarted();
+                break;
+        }
+    }
+
+    function initializeParticipants(participants) {
+        state.players.clear();
+        els.playerList.innerHTML = '';
+
+        participants.forEach(p => {
+            state.players.add(p.username);
+            addPlayerToList(p.username, p.is_host, false); // false = без анимации
+        });
+
+        updatePlayerCount();
+        checkStartButton();
+    }
+
+    function handleParticipantJoined(username, isHost) {
+        if (!state.players.has(username)) {
+            state.players.add(username);
+            addPlayerToList(username, isHost, true); // true = с анимацией
+            updatePlayerCount();
+            showToast(`🎉 ${username} присоединился!`, 'success');
+            checkStartButton();
+        }
+    }
+
+    function handleParticipantLeft(username) {
+        if (state.players.has(username)) {
+            state.players.delete(username);
+            removePlayerFromList(username);
+            updatePlayerCount();
+            showToast(`${username} покинул лобби`, 'info');
+        }
+    }
+
+    function handleGameStarted() {
+        showToast('🚀 Игра начинается!', 'success');
+        state.gameStarted = true;
+        setTimeout(() => {
+            window.location.href = `/quiz/play/${config.gameCode}/`;
+        }, 2000);
+    }
+
+    // =========================================
+    // 2. УПРАВЛЕНИЕ СПИСКОМ ИГРОКОВ
+    // =========================================
+    function addPlayerToList(username, isHost, animate = true) {
+        const li = document.createElement('li');
+        li.className = `player-item ${animate ? 'new' : ''}`;
+        li.dataset.username = username;
+
+        const avatar = isHost ? '👑' : '🎮';
+        const role = isHost ? '<span class="player-role">Ведущий</span>' : '';
+
+        li.innerHTML = `
+            <span class="player-avatar">${avatar}</span>
+            <span class="player-name">${username}</span>
+            ${role}
+        `;
+
+        els.playerList.appendChild(li);
+
+        // Убираем анимацию через 300мс
+        if (animate) {
+            setTimeout(() => li.classList.remove('new'), 300);
+        }
+    }
+
+    function removePlayerFromList(username) {
+        const item = els.playerList.querySelector(`[data-username="${username}"]`);
+        if (item) {
+            item.remove();
+        }
+    }
+
+    function updatePlayerCount() {
+        if (els.playerCount) {
+            els.playerCount.textContent = state.players.size;
+        }
+    }
+
+    function checkStartButton() {
+        if (els.btnStart) {
+            els.btnStart.disabled = state.players.size < config.minPlayers || state.gameStarted;
+        }
+    }
+
+    // =========================================
+    // 3. КОПИРОВАНИЕ КОДА КОМНАТЫ
     // =========================================
     function copyGameCode() {
         if (!config.gameCode) return;
@@ -36,87 +182,23 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('📋 Код скопирован!', 'success');
 
             // Визуальная обратная связь
-            const originalText = els.codeSection.querySelector('.code-hint').textContent;
-            els.codeSection.querySelector('.code-hint').textContent = '✅ Скопировано!';
+            const hintEl = els.codeSection.querySelector('.code-hint');
+            const originalText = hintEl.textContent;
+            hintEl.textContent = '✅ Скопировано!';
             setTimeout(() => {
-                els.codeSection.querySelector('.code-hint').textContent = originalText;
+                hintEl.textContent = originalText;
             }, 2000);
         }).catch(() => {
             showToast('❌ Не удалось скопировать', 'error');
         });
     }
 
-    if (els.codeSection) {
-        els.codeSection.addEventListener('click', copyGameCode);
-    }
-
     // =========================================
-    // 2. УПРАВЛЕНИЕ СПИСКОМ ИГРОКОВ
-    // =========================================
-    function addPlayer(username, isHost = false) {
-        if (state.players.some(p => p.username === username)) return;
-
-        state.players.push({username, isHost});
-        renderPlayerList();
-        updatePlayerCount();
-        checkStartButton();
-    }
-
-    function removePlayer(username) {
-        state.players = state.players.filter(p => p.username !== username);
-        renderPlayerList();
-        updatePlayerCount();
-        checkStartButton();
-    }
-
-    function renderPlayerList() {
-        if (!els.playerList) return;
-
-        els.playerList.innerHTML = '';
-
-        if (state.players.length === 0) {
-            els.playerList.innerHTML = `
-                <li class="player-item empty">
-                    <span class="player-avatar placeholder">⏳</span>
-                    <span class="player-name">Ожидание подключения...</span>
-                </li>
-            `;
-            return;
-        }
-
-        state.players.forEach((player, idx) => {
-            const li = document.createElement('li');
-            li.className = 'player-item new';
-            li.innerHTML = `
-                <span class="player-avatar">${player.isHost ? '👑' : '🎮'}</span>
-                <span class="player-name">${player.username}</span>
-                ${player.isHost ? '<span class="player-role">Ведущий</span>' : ''}
-            `;
-            els.playerList.appendChild(li);
-
-            // Убираем анимацию после завершения
-            setTimeout(() => li.classList.remove('new'), 300);
-        });
-    }
-
-    function updatePlayerCount() {
-        if (els.playerCount) {
-            els.playerCount.textContent = state.players.length;
-        }
-    }
-
-    function checkStartButton() {
-        if (els.btnStart) {
-            els.btnStart.disabled = state.players.length < config.minPlayers || state.gameStarted;
-        }
-    }
-
-    // =========================================
-    // 3. ОБРАБОТКА КНОПОК
+    // 4. ОБРАБОТКА КНОПОК
     // =========================================
     if (els.btnStart) {
-        els.btnStart.addEventListener('click', () => {
-            if (state.players.length < config.minPlayers) {
+        els.btnStart.addEventListener('click', async () => {
+            if (state.players.size < config.minPlayers) {
                 showToast(`Нужно минимум ${config.minPlayers} игрока`, 'warning');
                 return;
             }
@@ -125,11 +207,29 @@ document.addEventListener('DOMContentLoaded', () => {
             els.btnStart.disabled = true;
             els.btnStart.innerHTML = '<span class="btn-icon">⏳</span> Запуск...';
 
-            // Заглушка под переход в игру
-            setTimeout(() => {
-                showToast('🚀 Игра начинается!', 'success');
-                // window.location.href = `/quiz/play/${config.gameCode}/`;
-            }, 1000);
+            try {
+                const response = await fetch(`/quiz/lobby/${config.gameCode}/start/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showToast('🚀 Игра начинается!', 'success');
+                } else {
+                    showToast(data.error || 'Ошибка запуска игры', 'error');
+                    els.btnStart.disabled = false;
+                    els.btnStart.innerHTML = '<span class="btn-icon">🚀</span> Начать игру';
+                }
+            } catch (error) {
+                console.error('Error starting game:', error);
+                showToast('Произошла ошибка сети', 'error');
+                els.btnStart.disabled = false;
+                els.btnStart.innerHTML = '<span class="btn-icon">🚀</span> Начать игру';
+            }
         });
     }
 
@@ -141,27 +241,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================
-    // 4. ИМИТАЦИЯ ПОДКЛЮЧЕНИЯ ИГРОКОВ (для демо)
-    // =========================================
-    function simulatePlayerJoin() {
-        const demoPlayers = ['Алексей', 'Мария', 'Дмитрий', 'Анна'];
-        const randomPlayer = demoPlayers[Math.floor(Math.random() * demoPlayers.length)];
-
-        if (!state.players.some(p => p.username === randomPlayer)) {
-            addPlayer(randomPlayer);
-            showToast(`🎉 ${randomPlayer} присоединился!`, 'info');
-        }
-    }
-
-    // В реальном проекте здесь будет WebSocket или long-polling
-    // Для демо: симулируем подключение каждого 5 секунд
-    const demoInterval = setInterval(simulatePlayerJoin, 5000);
-
-    // =========================================
     // 5. ИНИЦИАЛИЗАЦИЯ
     // =========================================
-    // Добавляем ведущего в список
+    if (els.codeSection) {
+        els.codeSection.addEventListener('click', copyGameCode);
+    }
 
-    // Обновляем состояние кнопок
+    // Подключаемся к WebSocket
+    connectWebSocket();
+
+    // Отправляем ping каждые 30 секунд для поддержания соединения
+    setInterval(() => {
+        if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+            state.ws.send(JSON.stringify({type: 'ping'}));
+        }
+    }, 30000);
+
+    // Обновляем состояние кнопок при загрузке
     checkStartButton();
 });

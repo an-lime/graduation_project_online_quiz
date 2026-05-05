@@ -1,10 +1,16 @@
+import logging
+
 from vkbottle import GroupEventType, GroupTypes
 from vkbottle.bot import Message
 from vkbottle.framework.labeler import BotLabeler
 
 from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
+from .callback_handlers.game_callback_handler import proccess_game_code, join_game, cancel_join, leave_lobby
 from .callback_handlers.main_callback_handler import my_profile, create_profile, go_main, hide_password, reset_password, \
     confirm_reset
+from vk_bot.utils.states import is_waiting
+
+logger = logging.getLogger(__name__)
 
 main_labeler = BotLabeler()
 
@@ -17,6 +23,13 @@ async def start_command(message: Message):
         message="Приветствую тебя в боте для викторин!",
         keyboard=kb
     )
+
+
+@main_labeler.message()
+async def catch_join_code(message: Message):
+    if is_waiting(message.from_id):
+        await proccess_game_code(message)
+        return
 
 
 @main_labeler.raw_event(GroupEventType.MESSAGE_EVENT, dataclass=GroupTypes.MessageEvent)
@@ -40,3 +53,9 @@ async def callback_catch(event: GroupTypes.MessageEvent):
             await reset_password(event)
         case "confirm_reset":
             await confirm_reset(event)
+        case "join_game":
+            await join_game(event)
+        case "cancel_join":
+            await cancel_join(event)
+        case "leave_lobby":
+            await leave_lobby(event)

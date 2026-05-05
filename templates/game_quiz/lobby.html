@@ -30,10 +30,10 @@
                         Ожидание игроков...
                     </div>
 
-                    <div class="code-section" id="code-section" onclick="copyGameCode()"
+                    <div class="code-section" id="code-section"
                          title="Нажмите для копирования">
                         <span class="code-label">Код комнаты:</span>
-                        <span id="lobby-code" class="code-value">{{ game_code|default:"ABCD" }}</span>
+                        <span id="lobby-code" class="code-value">{{ game_code }}</span>
                         <span class="code-hint">📋 Скопировать</span>
                     </div>
                 </div>
@@ -44,21 +44,21 @@
                         <span class="info-icon">👥</span>
                         <div class="info-content">
                             <span class="info-label">Игроков</span>
-                            <span id="player-count" class="info-value">0</span>
+                            <span id="player-count" class="info-value">1</span>
                         </div>
                     </div>
                     <div class="info-card">
                         <span class="info-icon">🧩</span>
                         <div class="info-content">
                             <span class="info-label">Квиз</span>
-                            <span class="info-value">{{ quiz_name|default:"Общие знания" }}</span>
+                            <span class="info-value">{{ game.question_set.name }}</span>
                         </div>
                     </div>
                     <div class="info-card">
                         <span class="info-icon">👤</span>
                         <div class="info-content">
                             <span class="info-label">Ведущий</span>
-                            <span class="info-value">{{ request.user.username }}</span>
+                            <span class="info-value">{{ game.owner.username }}</span>
                         </div>
                     </div>
                 </div>
@@ -67,9 +67,10 @@
                 <div class="player-list-section">
                     <h3 class="section-title">🎯 Участники</h3>
                     <ul id="player-list" class="player-list">
-                        <li class="player-item empty">
-                            <span class="player-avatar placeholder">⏳</span>
-                            <span class="player-name">Ожидание подключения...</span>
+                        <li class="player-item">
+                            <span class="player-avatar">👑</span>
+                            <span class="player-name">{{ game.owner.username }}</span>
+                            <span class="player-role">Ведущий</span>
                         </li>
                     </ul>
                 </div>
@@ -84,16 +85,16 @@
                     </button>
                 </div>
 
-                <!-- Скрытые данные для JS -->
-                <div id="lobby-data"
-                     data-game-code="{{ game_code }}"
-                     data-min-players="2"
-                     style="display:none;">
-                </div>
-
             </section>
         </div>
     </main>
+
+    <!-- Скрытые данные для JS -->
+    <div id="lobby-data"
+         data-game-code="{{ game_code }}"
+         data-min-players="2"
+         style="display:none;">
+    </div>
 {% endblock %}
 
 {% block js %}
