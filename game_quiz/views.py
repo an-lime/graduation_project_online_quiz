@@ -1,13 +1,19 @@
 import json
 import random
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from game_quiz.models import QuizQuestionSet, QuizGame, GameParticipant
+from game_quiz.models import QuizGame
+from game_quiz.models import QuizQuestionSet, GameParticipant
+from game_quiz.services.game_session import get_game_session
+
+User = get_user_model()
 
 
 @login_required
@@ -166,3 +172,86 @@ def create_game_ajax(request):
         return JsonResponse({'success': False, 'error': 'Набор вопросов не найден'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': f'Ошибка: {str(e)}'})
+
+
+@login_required
+@require_POST
+def start_lobby_game(request, code):
+    """Запуск игры из лобби (AJAX)"""
+    try:
+        game = get_object_or_404(QuizGame, game_code=code, owner=request.user)
+
+        if game.status != 'waiting':
+            return JsonResponse({'success': False, 'error': 'Игра уже запущена или завершена'})
+
+        # Инициализация сессии и запуск
+        session = get_game_session(code)
+        success = session.start_game()
+
+        if success:
+            return JsonResponse({
+                'success': True,
+                'message': 'Игра запущена!',
+                'redirect_url': f'/quiz/play/{code}/'
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Ошибка инициализации сессии'})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+@login_required
+def game_view(request, game_code):
+    game = get_object_or_404(QuizGame, game_code=game_code)
+    # Загружаем участников, исключая ведущего (он выводится отдельно)
+    participants = GameParticipant.objects.filter(game=game).exclude(player=request.user).select_related(
+        'player__profile')
+
+    return render(request, 'game_quiz/game_view.html', {
+        'game': game,
+        'game_code': game_code,
+        'is_host': request.user == game.owner,
+        'participants': participants,  # ✅ Передаём в контекст
+    })
+
+
+@csrf_exempt
+def api_answer(request):
+    """
+    API endpoint для получения ответов от бота
+    POST /quiz/api/answer/
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+
+    import json
+    data = json.loads(request.body)
+    game_code = data.get('game_code', '').upper()
+    username = data.get('username')
+    option_index = data.get('option_index')
+
+    if not all([game_code, username, option_index is not None]):
+        return JsonResponse({'error': 'Missing fields'}, status=400)
+
+    try:
+        session = get_game_session(game_code)
+        result = session.handle_answer(username, option_index)
+
+        return JsonResponse(result)
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def api_get_user_by_vk(request, vk_id: int):
+    """
+    API для получения username по VK ID
+    GET /bot_api/user/<int:vk_id>/
+    """
+    try:
+        user = User.objects.get(profile__vk_id=vk_id)
+        return JsonResponse({'username': user.username})
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)

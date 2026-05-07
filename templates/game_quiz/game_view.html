@@ -1,125 +1,97 @@
-<!DOCTYPE html>
-<html lang="ru">
+{% extends 'base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ОНЛАЙН-КВИЗ | Трансляция игры</title>
-    <link rel="stylesheet" href="../styles/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
-</head>
+{% block title %}ОНЛАЙН-КВИЗ | Трансляция игры{% endblock %}
 
-<body>
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/game_quiz/game_view.css' %}">
+{% endblock %}
 
-    <div class="bg-shape shape-1"></div>
-    <div class="bg-shape shape-2"></div>
-
-    <div class="container">
-        <header class="header">
-            <div class="logo">
-                <span class="logo-icon">🎲</span>
-                <h1>Трансляция</h1>
-            </div>
-            <nav class="nav-buttons">
-                <a href="games_list.html" class="btn btn-secondary">← Все игры</a>
-                <a href="../main/index.html" class="btn btn-secondary">На главную</a>
-            </nav>
-        </header>
-
-        <main class="main-content">
-            <!-- Текущий вопрос -->
-            <section class="card game-question-card">
-                <div class="question-header">
-                    <span class="question-number">Вопрос 3 из 10</span>
-                    <span class="question-timer">⏱ 30 сек</span>
-                </div>
-                <h2 class="question-text">Какой язык используется для стилизации веб-страниц?</h2>
-                <div class="question-image-placeholder">
-                    <span>🖼 Изображение (если есть)</span>
-                </div>
-            </section>
-
-            <!-- Статистика ответов -->
-            <section class="card game-stats-card">
-                <h3>📊 Статистика ответов</h3>
-                <div class="stats-bars">
-                    <div class="stat-row">
-                        <span class="stat-label">HTML</span>
-                        <div class="stat-bar-container">
-                            <div class="stat-bar" style="width: 15%; background: #ff4757;">15%</div>
+{% block content %}
+    <main class="main-content py-5">
+        <div class="container">
+            <section class="card game-card">
+                <div class="game-header">
+                    <div class="header-left">
+                        <span class="header-icon">🎲</span>
+                        <div>
+                            <h2 class="game-title">{{ game.name|default:"Название викторины" }}</h2>
+                            <p class="game-meta">Код: <strong>{{ game_code }}</strong> |
+                                Набор: {{ game.question_set.name|default:"Общие знания" }}</p>
                         </div>
                     </div>
-                    <div class="stat-row">
-                        <span class="stat-label">CSS</span>
-                        <div class="stat-bar-container">
-                            <div class="stat-bar" style="width: 65%; background: #2ed573;">65%</div>
-                        </div>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">JavaScript</span>
-                        <div class="stat-bar-container">
-                            <div class="stat-bar" style="width: 12%; background: #3742fa;">12%</div>
-                        </div>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">Python</span>
-                        <div class="stat-bar-container">
-                            <div class="stat-bar" style="width: 8%; background: #ffa502;">8%</div>
-                        </div>
+                    <div class="header-right">
+                        <span class="status-badge" id="game-status">⏳ Ожидание старта</span>
+                        <a href="{% url 'game_quiz:create_game' %}" class="btn btn-exit">✕</a>
                     </div>
                 </div>
+
+                <div class="question-area" id="question-area">
+                    <div class="question-timer" id="timer-display">00:00</div>
+                    <div class="question-number" id="q-number">Вопрос 0 из 0</div>
+                    <h3 class="question-text" id="q-text">Нажмите "Начать викторину", чтобы запустить игру</h3>
+                </div>
+
+                <div class="game-layout">
+                    <div class="rating-panel">
+                        <h3 class="panel-title">🏆 Текущий рейтинг</h3>
+                        <div class="rating-list" id="rating-list">
+                            <div class="rating-placeholder"><p>Рейтинг появится после начала игры</p></div>
+                        </div>
+                    </div>
+
+                    <div class="players-panel">
+                        <h3 class="panel-title"> Игроки в комнате</h3>
+
+                        <!-- Ведущий -->
+                        <div class="host-card" data-username="{{ game.owner.username }}">
+                            <span class="player-avatar">👑</span>
+                            <div class="player-info">
+                                <span class="player-name">{{ game.owner.first_name|default:game.owner.username }} {{ game.owner.last_name|default:"" }}</span>
+                                <span class="player-role">Ведущий</span>
+                            </div>
+                            <span class="player-status">🎮</span>
+                        </div>
+
+                        <!-- Список участников (рендерится сервером) -->
+                        <div class="players-list" id="players-list">
+                            {% for p in participants %}
+                                <div class="player-item" data-username="{{ p.player.username }}" data-status="waiting">
+                                    <span class="player-avatar"></span>
+                                    <div class="player-info">
+                                        <span class="player-name">{{ p.player.first_name|default:p.player.username }} {{ p.player.last_name|default:"" }}</span>
+                                        <span class="player-status-text">Ожидает ответа...</span>
+                                    </div>
+                                    <span class="player-status">⏳</span>
+                                </div>
+                            {% empty %}
+                                <div class="rating-placeholder"><p>Пока нет участников</p></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if request.user == game.owner %}
+                    <div class="host-controls" id="host-controls">
+                        <button type="button" id="btn-start-game" class="btn btn-primary btn-jackbox">
+                            <span class="btn-icon">▶️</span> Начать викторину
+                        </button>
+                        <button type="button" id="btn-next-question" class="btn btn-secondary btn-jackbox" disabled
+                                style="display:none;">
+                            <span class="btn-icon">️</span> Следующий вопрос
+                        </button>
+                    </div>
+                {% endif %}
             </section>
+        </div>
+    </main>
 
-            <!-- Таблица лидеров -->
-            <section class="card game-leaderboard-card">
-                <h3>🏆 Таблица лидеров</h3>
-                <table class="leaderboard-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Игрок</th>
-                            <th>Баллы</th>
-                            <th>Правильно</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="leaderboard-row first">
-                            <td>🥇</td>
-                            <td>AlexGamer</td>
-                            <td>450</td>
-                            <td>3/3</td>
-                        </tr>
-                        <tr class="leaderboard-row second">
-                            <td>🥈</td>
-                            <td>QuizMaster</td>
-                            <td>420</td>
-                            <td>3/3</td>
-                        </tr>
-                        <tr class="leaderboard-row third">
-                            <td>🥉</td>
-                            <td>SmartGirl</td>
-                            <td>380</td>
-                            <td>2/3</td>
-                        </tr>
-                        <tr class="leaderboard-row">
-                            <td>4</td>
-                            <td>JohnDoe</td>
-                            <td>350</td>
-                            <td>2/3</td>
-                        </tr>
-                        <tr class="leaderboard-row">
-                            <td>5</td>
-                            <td>AnnaK</td>
-                            <td>300</td>
-                            <td>2/3</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
-        </main>
-    </div>
+    <div id="game-data"
+         data-game-code="{{ game_code }}"
+         data-is-host="{% if request.user == game.owner %}true{% else %}false{% endif %}"
+         style="display:none;"></div>
+{% endblock %}
 
-    <script src="../scripts/script.js"></script>
-</body>
-
-</html>
+{% block js %}
+    <script src="{% static 'js/game_quiz/game_view.js' %}"></script>
+{% endblock %}

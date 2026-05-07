@@ -12,6 +12,14 @@ urlpatterns = [
     path('sets/new/save/', views.save_question_set, name='save_new_set'),
     path('sets/edit/<int:set_id>/', views.set_editor, name='edit_set'),
     path('sets/edit/<int:set_id>/save/', views.save_question_set, name='save_set'),
+
     path('lobby/<str:code>/', views.lobby, name='lobby'),
     path('create-game-ajax/', views.create_game_ajax, name='create_game_ajax'),
+
+    path('lobby/<str:code>/start/', views.start_lobby_game, name='start_lobby_game'),
+
+    path('play/<str:game_code>/', views.game_view, name='game_view'),
+
+    # API для бота
+    path('api/answer/', views.api_answer, name='api_answer'),
 ]

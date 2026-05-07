@@ -198,34 +198,44 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================
     if (els.btnStart) {
         els.btnStart.addEventListener('click', async () => {
-            if (state.players.size < config.minPlayers) {
+            // Проверка минимального количества игроков
+            const currentPlayers = state.players.size || state.players.length;
+            if (currentPlayers < config.minPlayers) {
                 showToast(`Нужно минимум ${config.minPlayers} игрока`, 'warning');
                 return;
             }
 
-            state.gameStarted = true;
+            // Блокируем кнопку
             els.btnStart.disabled = true;
             els.btnStart.innerHTML = '<span class="btn-icon">⏳</span> Запуск...';
 
             try {
+                const csrfToken = document.querySelector('#csrf-form input[name="csrfmiddlewaretoken"]')?.value ||
+                    document.querySelector('[name="csrfmiddlewaretoken"]')?.value || '';
+
                 const response = await fetch(`/quiz/lobby/${config.gameCode}/start/`, {
                     method: 'POST',
                     headers: {
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                        'X-CSRFToken': csrfToken,
                         'Content-Type': 'application/json'
                     }
                 });
 
                 const data = await response.json();
-                if (data.success) {
-                    showToast('🚀 Игра начинается!', 'success');
+
+                if (data.success && data.redirect_url) {
+                    showToast('🚀 Игра начинается! Переход в комнату...', 'success');
+                    // Плавный редирект на страницу трансляции
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 1200);
                 } else {
                     showToast(data.error || 'Ошибка запуска игры', 'error');
                     els.btnStart.disabled = false;
                     els.btnStart.innerHTML = '<span class="btn-icon">🚀</span> Начать игру';
                 }
             } catch (error) {
-                console.error('Error starting game:', error);
+                console.error('Network error:', error);
                 showToast('Произошла ошибка сети', 'error');
                 els.btnStart.disabled = false;
                 els.btnStart.innerHTML = '<span class="btn-icon">🚀</span> Начать игру';

@@ -1,15 +1,29 @@
+import asyncio
+import logging
+
+import requests
 from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
+from environs import Env
 from vkbottle import Keyboard, Callback
 from vkbottle.bot import Message
 from vkbottle_types import GroupTypes
 
+from Online_Quiz_Core.settings import BASE_DIR
 from game_quiz.models import QuizGame, GameParticipant
 from vk_bot.keyboards.lobby_keyboard import create_lobby_keyboard
 from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
+from vk_bot.services.game_service import GameAnswerHandler
 from vk_bot.utils.db import get_current_user
 from vk_bot.utils.states import mark_waiting, clear_waiting
 from vk_bot.utils.support_functions import generate_event_random_id
+
+logger = logging.getLogger(__name__)
+
+answer_handler = GameAnswerHandler()
+
+env = Env()
+env.read_env(BASE_DIR / ".env")
 
 
 async def join_game(event: GroupTypes.MessageEvent):
@@ -187,3 +201,68 @@ async def leave_lobby(event: GroupTypes.MessageEvent):
     except GameParticipant.DoesNotExist:
         # Если пользователь и так не в игре (например, двойной клик)
         pass
+
+
+async def handle_answer_callback(event: GroupTypes.MessageEvent, payload: dict):
+    """Обработка нажатия на вариант ответа в игре"""
+
+    DJANGO_API_URL = env.str("DJANGO_API_URL")
+    try:
+        game_code = payload.get("game_code", "").upper()
+        option_index = payload.get("option_index")
+        user_id = event.object.user_id
+        peer_id = event.object.peer_id
+        cmid = event.object.conversation_message_id
+
+        if option_index is None or not game_code:
+            logger.warning(f"❌ Invalid payload: {payload}")
+            return
+
+        # Получаем пользователя из БД
+        user = await get_current_user(user_id)
+        if not user:
+            await event.ctx_api.messages.send(
+                peer_id=peer_id,
+                random_id=0,
+                message="❌ Ошибка: вы не авторизованы в системе викторины."
+            )
+            return
+
+        # Отправляем ответ на Django (в отдельном потоке, чтобы не блокировать event loop)
+        def send_answer_sync():
+            return requests.post(
+                f"{DJANGO_API_URL}/quiz/api/answer/",
+                json={
+                    "game_code": game_code,
+                    "username": user.username,
+                    "option_index": option_index
+                },
+                timeout=5
+            ).json()
+
+        # ✅ Безопасный вызов синхронного requests в async контексте
+        result = await asyncio.to_thread(send_answer_sync)
+
+        # Реакция бота на результат
+        if result.get("success"):
+            await event.ctx_api.messages.edit(
+                peer_id=peer_id,
+                cmid=cmid,
+                message="✅ Ваш ответ принят!"
+            )
+        else:
+            await event.ctx_api.messages.edit(
+                peer_id=peer_id,
+                cmid=cmid,
+                message=f"⏱ Время вышло или ошибка: {result.get('error', 'попробуйте позже')}"
+            )
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"🌐 Network error sending answer to Django: {e}")
+        await event.ctx_api.messages.edit(
+            peer_id=event.object.peer_id,
+            cmid=event.object.conversation_message_id,
+            message="⚠️ Ошибка связи с сервером. Попробуйте позже."
+        )
+    except Exception as e:
+        logger.error(f"💥 Error in handle_answer_callback: {e}", exc_info=True)

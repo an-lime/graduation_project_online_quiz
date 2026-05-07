@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, update_session_auth_hash
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.db import transaction
 from django.http import JsonResponse
@@ -18,6 +18,8 @@ from django.views.decorators.http import require_POST
 
 from Online_Quiz_Core import settings
 from users.utils import terminate_all_user_sessions
+
+User = get_user_model()
 
 
 def login_view(request):
@@ -242,3 +244,12 @@ def verify_email_code(request):
 
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+
+def api_get_user_by_vk(request, vk_id: int):
+    """API для получения username по VK ID"""
+    try:
+        user = User.objects.get(profile__vk_id=vk_id)
+        return JsonResponse({'username': user.username})
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)

@@ -162,3 +162,9 @@ LOGGING = {
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# VK Bot settings
+VK_BOT_TOKEN = env.str("VK_BOT_TOKEN", default="")
+
+# Django API URL (для бота)
+DJANGO_API_URL = env.str("DJANGO_API_URL", default="http://127.0.0.1:8000")

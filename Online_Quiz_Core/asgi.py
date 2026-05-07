@@ -9,7 +9,7 @@ from django.urls import path
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Online_Quiz_Core.settings')
 django.setup()
 
-from game_quiz.consumers import LobbyConsumer
+from game_quiz.consumers import LobbyConsumer, GameConsumer
 
 django_asgi_app = get_asgi_application()
 
@@ -18,6 +18,7 @@ application = ProtocolTypeRouter({
     "websocket": AuthMiddlewareStack(
         URLRouter([
             path("ws/lobby/<str:game_code>/", LobbyConsumer.as_asgi()),
+            path("ws/game/<str:game_code>/", GameConsumer.as_asgi()),
         ])
     ),
 })

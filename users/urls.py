@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from users import views
+from users import views as user_views
 
 app_name = 'users'
 
@@ -16,11 +16,13 @@ urlpatterns = [
         next_page='main:index'
     ), name='logout'),
 
-    path('profile/', views.profile, name='profile'),
-    path('profile/edit/', views.profile_edit, name='profile_edit'),
-    path('profile/password-change/', views.password_change, name='password_change'),
+    path('profile/', user_views.profile, name='profile'),
+    path('profile/edit/', user_views.profile_edit, name='profile_edit'),
+    path('profile/password-change/', user_views.password_change, name='password_change'),
 
-    #     AJAX пути
-    path('ajax/send-code', views.send_verify_code, name='send_verify_code'),
-    path('ajax/verify-code', views.verify_email_code, name='verify_email_code')
+    # AJAX пути
+    path('ajax/send-code', user_views.send_verify_code, name='send_verify_code'),
+    path('ajax/verify-code', user_views.verify_email_code, name='verify_email_code'),
+
+    path('bot_api/user/<int:vk_id>/', user_views.api_get_user_by_vk, name='api_get_user_by_vk'),
 ]

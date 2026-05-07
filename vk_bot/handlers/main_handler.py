@@ -1,3 +1,4 @@
+import json
 import logging
 
 from vkbottle import GroupEventType, GroupTypes
@@ -5,7 +6,8 @@ from vkbottle.bot import Message
 from vkbottle.framework.labeler import BotLabeler
 
 from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
-from .callback_handlers.game_callback_handler import proccess_game_code, join_game, cancel_join, leave_lobby
+from .callback_handlers.game_callback_handler import proccess_game_code, join_game, cancel_join, leave_lobby, \
+    handle_answer_callback
 from .callback_handlers.main_callback_handler import my_profile, create_profile, go_main, hide_password, reset_password, \
     confirm_reset
 from vk_bot.utils.states import is_waiting
@@ -40,6 +42,18 @@ async def callback_catch(event: GroupTypes.MessageEvent):
         user_id=event.object.user_id,
     )
 
+    raw_payload = event.object.payload
+    if isinstance(raw_payload, str):
+        try:
+            payload = json.loads(raw_payload)
+        except json.JSONDecodeError:
+            payload = {}
+    else:
+        payload = raw_payload or {}
+
+    action = payload.get("action")
+    logger.info(f"📥 Callback received: action={action}, payload={payload}")
+
     match event.object.payload.get("action"):
         case "go_main":
             await go_main(event)
@@ -59,3 +73,5 @@ async def callback_catch(event: GroupTypes.MessageEvent):
             await cancel_join(event)
         case "leave_lobby":
             await leave_lobby(event)
+        case "answer":
+            await handle_answer_callback(event, payload)

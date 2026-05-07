@@ -89,6 +89,10 @@
         </div>
     </main>
 
+    <form id="csrf-form" style="display: none;">
+        {% csrf_token %}
+    </form>
+
     <!-- Скрытые данные для JS -->
     <div id="lobby-data"
          data-game-code="{{ game_code }}"
