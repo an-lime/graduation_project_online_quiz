@@ -30,6 +30,8 @@
                     <div class="question-timer" id="timer-display">00:00</div>
                     <div class="question-number" id="q-number">Вопрос 0 из 0</div>
                     <h3 class="question-text" id="q-text">Нажмите "Начать викторину", чтобы запустить игру</h3>
+
+                    <div id="question-result" style="display:none;"></div>
                 </div>
 
                 <div class="game-layout">
@@ -82,6 +84,31 @@
                         </button>
                     </div>
                 {% endif %}
+
+                <div id="results-modal" class="results-modal" style="display:none;">
+                    <div class="results-card">
+                        <div class="results-header">
+                            <h2>🏆 Игра завершена!</h2>
+                            <p class="results-subtitle" id="results-game-name">{{ game.name }}</p>
+                        </div>
+                        <div class="results-table">
+                            <div class="results-row header">
+                                <span class="col-rank">Место</span>
+                                <span class="col-player">Игрок</span>
+                                <span class="col-stats">Правильно</span>
+                                <span class="col-score">Очки</span>
+                            </div>
+                            <div id="results-list"></div>
+                        </div>
+                        <div class="results-footer">
+                            <a href="{% url 'game_quiz:lobby' game_code %}" class="btn btn-primary btn-jackbox">🔙
+                                Вернуться в лобби</a>
+                            <a href="{% url 'game_quiz:create_game' %}" class="btn btn-secondary btn-jackbox">🎮 Новая
+                                игра</a>
+                        </div>
+                    </div>
+                </div>
+
             </section>
         </div>
     </main>

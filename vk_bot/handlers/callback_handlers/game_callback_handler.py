@@ -13,7 +13,7 @@ from Online_Quiz_Core.settings import BASE_DIR
 from game_quiz.models import QuizGame, GameParticipant
 from vk_bot.keyboards.lobby_keyboard import create_lobby_keyboard
 from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
-from vk_bot.services.game_service import GameAnswerHandler
+from vk_bot.services.game_service_bot import GameAnswerHandler
 from vk_bot.utils.db import get_current_user
 from vk_bot.utils.states import mark_waiting, clear_waiting
 from vk_bot.utils.support_functions import generate_event_random_id

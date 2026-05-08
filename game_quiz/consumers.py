@@ -127,7 +127,11 @@ class GameConsumer(AsyncWebsocketConsumer):
                 await self.send(text_data=json.dumps({'type': 'game_ended'}))
 
     async def _send_question(self, session, question_data):
-        await self.send(text_data=json.dumps({'type': 'question_update', **question_data}))
+
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {'type': 'question_update', **question_data}
+        )
 
         participants = session.get_participants_for_bot()
         if participants:
@@ -155,7 +159,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps(event))
 
     async def question_ended(self, event):
-        await self.send(text_data=json.dumps({'type': 'question_ended'}))
+        await self.send(text_data=json.dumps(event))
 
     async def game_ended(self, event):
         await self.send(text_data=json.dumps({'type': 'game_ended'}))
