@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateTimerDisplay(data.seconds_left);
                 break;
             case 'player_answer':
-                updatePlayerStatus(data.username, 'answered');
+                updatePlayerStatus(data.vk_id, 'answered');
                 break;
             case 'leaderboard_update':
                 updateRating(data.leaderboard);
@@ -241,8 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updatePlayerStatus(username, status) {
-        const el = document.querySelector(`.player-item[data-username="${username}"]`);
+    function updatePlayerStatus(vk_id, status) {
+        const el = document.querySelector(`.player-item[data-username="${vk_id}"]`);
         if (!el) return;
         el.dataset.status = status;
         const s = el.querySelector('.player-status');

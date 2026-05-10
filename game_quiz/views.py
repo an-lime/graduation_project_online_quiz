@@ -228,30 +228,17 @@ def api_answer(request):
     import json
     data = json.loads(request.body)
     game_code = data.get('game_code', '').upper()
-    username = data.get('username')
+    vk_id = data.get('vk_id')
     option_index = data.get('option_index')
 
-    if not all([game_code, username, option_index is not None]):
+    if not all([game_code, vk_id, option_index is not None]):
         return JsonResponse({'error': 'Missing fields'}, status=400)
 
     try:
         session = get_game_session(game_code)
-        result = session.handle_answer(username, option_index)
+        result = session.handle_answer(vk_id, option_index)
 
         return JsonResponse(result)
 
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-
-@csrf_exempt
-def api_get_user_by_vk(request, vk_id: int):
-    """
-    API для получения username по VK ID
-    GET /bot_api/user/<int:vk_id>/
-    """
-    try:
-        user = User.objects.get(profile__vk_id=vk_id)
-        return JsonResponse({'username': user.username})
-    except User.DoesNotExist:
-        return JsonResponse({'error': 'User not found'}, status=404)

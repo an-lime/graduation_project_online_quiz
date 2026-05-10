@@ -1,7 +1,13 @@
-import requests
-from typing import List, Dict
-from django.conf import settings
+import json
 import logging
+from typing import List, Dict
+
+import requests
+import vk_api
+from django.conf import settings
+
+from game_quiz.services.game_session import redis_client
+from vk_bot.utils.support_functions import generate_event_random_id
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +26,7 @@ class VKQuestionSender:
             question_text: str,
             options: List[str],
             game_code: str
-    ) -> Dict:
+    ):
         """
         Отправить вопрос всем участникам
 
@@ -30,37 +36,36 @@ class VKQuestionSender:
             logger.error("VK_BOT_TOKEN not configured")
             return {'success': False, 'error': 'Bot token not configured'}
 
-        success_count = 0
-        failed_users = []
-
         for participant in participants:
-            try:
-                self._send_message_with_keyboard(
-                    peer_id=participant['vk_id'],
-                    message=f"❓ {question_text}",
-                    options=options,
-                    game_code=game_code
-                )
-                success_count += 1
-            except Exception as e:
-                logger.error(f"Failed to send to {participant['username']}: {e}")
-                failed_users.append(participant['username'])
+            self._send_message_with_keyboard(
+                peer_id=participant['vk_id'],
+                message=f"❓ {question_text}",
+                options=options,
+                game_code=game_code
+            )
 
-        return {
-            'success': success_count > 0,
-            'sent': success_count,
-            'failed': failed_users
-        }
+            # try:
+            #     self._send_message_with_keyboard(
+            #         peer_id=participant['vk_id'],
+            #         message=f"❓ {question_text}",
+            #         options=options,
+            #         game_code=game_code
+            #     )
+            # except Exception as e:
+            #     logger.error(f"Failed to send to {participant['username']}: {e}")
+
+        return None
 
     def _send_message_with_keyboard(
             self,
             peer_id: int,
             message: str,
             options: List[str],
-            game_code: str
+            game_code: str,
     ):
         """Отправить сообщение с inline-клавиатурой"""
-        import json
+
+        redis_key = f"game_session:{game_code}"
 
         # Создаём клавиатуру
         keyboard = {
@@ -87,6 +92,7 @@ class VKQuestionSender:
                     })
             keyboard["buttons"].append(row)
 
+        print('peer: ', peer_id)
         # Отправляем сообщение
         response = requests.post(
             f"{self.base_url}/messages.send",
@@ -102,5 +108,15 @@ class VKQuestionSender:
         )
 
         result = response.json()
+        state = json.loads(redis_client.get(redis_key))
+
+        vk = vk_api.VkApi(token=self.bot_token)
+        message_info = vk.method("messages.getById", {
+            "message_ids": [result["response"]]
+        })
+
+        if message_info["count"] > 0:
+            state['participants'][str(peer_id)]['cmid'] = message_info["items"][0]["conversation_message_id"]
+
         if 'error' in result:
             raise Exception(f"VK API error: {result['error']}")

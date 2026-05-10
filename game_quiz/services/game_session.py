@@ -73,7 +73,7 @@ class GameSession:
                 'is_running': True,
                 'started_at': timezone.now().isoformat(),
                 'participants': {
-                    p['player__username']: {
+                    p['player__profile__vk_id']: {
                         'username': p['player__username'],
                         'first_name': p['player__first_name'],
                         'last_name': p['player__last_name'],
@@ -129,16 +129,16 @@ class GameSession:
             return None
 
         # Сброс статусов для нового вопроса
-        for username in state['participants']:
-            state['participants'][username]['answered_current'] = False
-            state['participants'][username]['answer_time'] = 0
+        for vk_id in state['participants']:
+            state['participants'][vk_id]['answered_current'] = False
+            state['participants'][vk_id]['answer_time'] = 0
 
         state['question_active'] = True
         self.save_state(state)
 
         question = state['questions'][state['current_idx']]
 
-        # await self._start_timer()
+        asyncio.create_task(self._start_timer())
 
         # ✅ ВОЗВРАЩАЕМ correct_index И explanation
         return {
@@ -151,7 +151,7 @@ class GameSession:
             'timer': state['timer_seconds']
         }
 
-    def handle_answer(self, username: str, option_index: int) -> dict:
+    def handle_answer(self, vk_id: int, option_index: int) -> dict:
         """Обработка ответа игрока (sync-метод)"""
         state = self.get_state()
         if not state:
@@ -160,10 +160,14 @@ class GameSession:
         if not state.get('question_active'):
             return {'success': False, 'error': 'Question already ended'}
 
-        if username not in state['participants']:
+        vk_id_str = str(vk_id)
+
+        if vk_id_str not in state['participants']:
+            logger.warning(f"Player {vk_id} not found in participants. Available: {list(state['participants'].keys())}")
             return {'success': False, 'error': 'Player not in game'}
 
-        player = state['participants'][username]
+        player = state['participants'][vk_id_str]
+
         if player['answered_current']:
             return {'success': False, 'error': 'Already answered'}
 
@@ -189,7 +193,8 @@ class GameSession:
             f'game_{self.game_code}',
             {
                 'type': 'player_answer',
-                'username': username,
+                'vk_id': vk_id,
+                'username': player['username'],
                 'correct': is_correct
             }
         )
@@ -205,7 +210,7 @@ class GameSession:
         """Проверяет, ответили ли все реальные игроки (не ведущий)"""
         for p in state['participants'].values():
             # Пропускаем ведущего и тех, у кого нет vk_id
-            if p['username'] == state.get('host_username') or not p['vk_id']:
+            if p.get('is_host', False) or not p['vk_id']:
                 continue
             if not p['answered_current']:
                 return False
@@ -229,7 +234,7 @@ class GameSession:
 
                 if remaining == 0:
                     logger.info(f"⏱ Timer expired for {self.game_code}")
-                    await self._finish_question()
+                    await self._finish_question(timer_ended=True)
                     break
 
                 await asyncio.sleep(1)
@@ -251,13 +256,29 @@ class GameSession:
             except asyncio.CancelledError:
                 pass
 
-    async def _finish_question(self):
+    async def _finish_question(self, timer_ended=False):
+
+        print('Вопрос завершён')
         """Завершает вопрос: сохраняет результаты, шлёт финальные события"""
         state = self.get_state()
         if not state or not state.get('question_active'):
             return
 
         state['question_active'] = False
+
+        if timer_ended:
+            print('Не ответили за время: ')
+            for k, v in state['participants'].items():
+                if not v['answered_current']:
+                    print(v['username'])
+
+        print('__________________________________')
+
+        print('Ответили за время: ')
+        for k, v in state['participants'].items():
+            if v['answered_current']:
+                print(v['username'])
+
         self.save_state(state)
 
         # Сохраняем результаты (не прерываемся при ошибке)
@@ -333,10 +354,17 @@ class GameSession:
         """Сохраняет статистику игроков в БД"""
         try:
             game_id = state['game_id']
-            for uname, data in state['participants'].items():
+
+            for vk_id, data in state['participants'].items():
+                username = data.get('username')
+
+                if not username:
+                    logger.warning(f"No username for participant {vk_id}")
+                    continue
+
                 # Сначала получаем пользователя
                 user = await sync_to_async(
-                    lambda u=uname: User.objects.get(username=u)
+                    lambda u=username: User.objects.get(username=u)
                 )()
 
                 # ✅ ИСПРАВЛЕНО: правильно передаём data в lambda
@@ -346,10 +374,12 @@ class GameSession:
                         player=u,
                         defaults={
                             'score': d['score']
-                            # correct_answers убран, т.к. нет в модели
                         }
                     )
                 )()
+
+            logger.info(f"Results saved for game {game_id}")
+
         except Exception as e:
             logger.error(f"Error saving results: {e}")
 
