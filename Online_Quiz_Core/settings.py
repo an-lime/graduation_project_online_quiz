@@ -84,6 +84,8 @@ CHANNEL_LAYERS = {
     }
 }
 
+REDIS_TTL = 7200
+
 # Database
 DATABASES = {
     'default': {

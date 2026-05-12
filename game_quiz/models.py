@@ -60,7 +60,8 @@ class QuizGame(models.Model):
         ('finished', 'Игра завершена'),
     ]
 
-    owner = models.ForeignKey(User, verbose_name='Ведущий викторины', on_delete=models.PROTECT, related_name='quiz_games')
+    owner = models.ForeignKey(User, verbose_name='Ведущий викторины', on_delete=models.PROTECT,
+                              related_name='quiz_games')
     name = models.CharField(verbose_name="Название викторины", max_length=150)
 
     question_set = models.ForeignKey(QuizQuestionSet, verbose_name='Набор вопросов', on_delete=models.PROTECT,
@@ -102,11 +103,12 @@ class GameResult(models.Model):
         verbose_name = "Результат игры"
         verbose_name_plural = "Результаты игр"
 
+
 class GameParticipant(models.Model):
     """Промежуточная модель: участник конкретной игры"""
 
     game = models.ForeignKey(QuizGame, on_delete=models.CASCADE)
-    player = models.ForeignKey(User, on_delete=models.CASCADE)
+    player = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

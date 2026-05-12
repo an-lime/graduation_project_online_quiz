@@ -7,7 +7,6 @@ import vk_api
 from django.conf import settings
 
 from game_quiz.services.game_session import redis_client
-from vk_bot.utils.support_functions import generate_event_random_id
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +65,7 @@ class VKQuestionSender:
         """Отправить сообщение с inline-клавиатурой"""
 
         redis_key = f"game_session:{game_code}"
+        REDIS_TTL = getattr(settings, 'REDIS_TTL', None)
 
         # Создаём клавиатуру
         keyboard = {
@@ -117,6 +117,7 @@ class VKQuestionSender:
 
         if message_info["count"] > 0:
             state['participants'][str(peer_id)]['cmid'] = message_info["items"][0]["conversation_message_id"]
+            redis_client.setex(redis_key, REDIS_TTL, json.dumps(state))
 
         if 'error' in result:
             raise Exception(f"VK API error: {result['error']}")

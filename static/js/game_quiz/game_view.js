@@ -41,14 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
         ws.onopen = () => console.log('✅ Game WS connected');
         ws.onmessage = (e) => {
             const data = JSON.parse(e.data);
-            console.log('📩 Received:', data.type);
             handleGameMessage(data);
         };
         ws.onclose = () => console.log('❌ Game WS disconnected');
     }
 
     function handleGameMessage(data) {
-        console.log('🔄 Handling:', data.type);
         switch (data.type) {
             case 'game_started':
                 handleGameStarted();
@@ -75,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderQuestion(data) {
-        console.log('📝 Rendering question:', data.question_number);
 
         if (els.qNumber) els.qNumber.textContent = `Вопрос ${data.question_number} из ${data.total_questions}`;
         if (els.qText) els.qText.textContent = data.text;
@@ -145,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (els.qText) {
             els.qText.insertAdjacentElement('afterend', container);
-            console.log('✅ Options rendered');
         }
     }
 

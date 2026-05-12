@@ -18,7 +18,6 @@ def get_current_user(vk_id: int):
 
 @db_sync
 def create_user_and_profile(username: str, password: str, event: GroupTypes.MessageEvent):
-
     vk_id = event.object.user_id
 
     user = User.objects.create_user(

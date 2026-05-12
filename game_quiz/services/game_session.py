@@ -1,12 +1,12 @@
-# game_quiz/services/game_session.py
-
 import asyncio
 import json
 import logging
 
 import redis
+import vk_api
 from asgiref.sync import sync_to_async, async_to_sync
 from channels.layers import get_channel_layer
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
@@ -18,13 +18,15 @@ logger = logging.getLogger(__name__)
 
 
 class GameSession:
-    REDIS_TTL = 7200  # 2 часа
+    REDIS_TTL = getattr(settings, 'REDIS_TTL', None)
 
     def __init__(self, game_code: str):
         self.game_code = game_code.upper()
         self.redis_key = f"game_session:{self.game_code}"
         self.channel_layer = get_channel_layer()
         self._timer_task = None
+        self.bot_token = getattr(settings, 'VK_BOT_TOKEN', None)
+        self.vk = vk_api.VkApi(token=self.bot_token)
 
     def get_state(self):
         """Получение состояния из Redis"""
@@ -69,7 +71,7 @@ class GameSession:
                 'host_username': game.owner.username,
                 'questions': game.question_set.quiz_set_content,
                 'current_idx': -1,
-                'timer_seconds': 30,
+                'timer_seconds': 10,
                 'is_running': True,
                 'started_at': timezone.now().isoformat(),
                 'participants': {
@@ -128,7 +130,6 @@ class GameSession:
             await self.end_game()
             return None
 
-        # Сброс статусов для нового вопроса
         for vk_id in state['participants']:
             state['participants'][vk_id]['answered_current'] = False
             state['participants'][vk_id]['answer_time'] = 0
@@ -140,7 +141,6 @@ class GameSession:
 
         asyncio.create_task(self._start_timer())
 
-        # ✅ ВОЗВРАЩАЕМ correct_index И explanation
         return {
             'question_number': state['current_idx'] + 1,
             'total_questions': len(state['questions']),
@@ -175,16 +175,20 @@ class GameSession:
         correct_index = question.get('correctIndex', -1)
         is_correct = option_index == correct_index
 
+        print(player)
+
+        if is_correct:
+            # speed_bonus = max(0, (state['timer_seconds'] - player['answer_time']))
+            # player['score'] += 100 + speed_bonus
+            # player['correct_count'] = player.get('correct_count', 0) + 1
+            player['score'] += 10
+            player['correct_count'] = player.get('correct_count', 0) + 1
+        player['total'] += 1
+
         # Обновляем статистику
         player['answered_current'] = True
         player['correct'] = is_correct
         player['answer_time'] = state['timer_seconds']
-
-        if is_correct:
-            speed_bonus = max(0, (state['timer_seconds'] - player['answer_time']) * 5)
-            player['score'] += 100 + speed_bonus
-            player['correct_count'] = player.get('correct_count', 0) + 1
-        player['total'] += 1
 
         self.save_state(state)
 
@@ -209,8 +213,7 @@ class GameSession:
     def _check_all_answered(self, state) -> bool:
         """Проверяет, ответили ли все реальные игроки (не ведущий)"""
         for p in state['participants'].values():
-            # Пропускаем ведущего и тех, у кого нет vk_id
-            if p.get('is_host', False) or not p['vk_id']:
+            if not p['vk_id']:
                 continue
             if not p['answered_current']:
                 return False
@@ -267,17 +270,14 @@ class GameSession:
         state['question_active'] = False
 
         if timer_ended:
-            print('Не ответили за время: ')
+            state = self.get_state()
             for k, v in state['participants'].items():
-                if not v['answered_current']:
-                    print(v['username'])
-
-        print('__________________________________')
-
-        print('Ответили за время: ')
-        for k, v in state['participants'].items():
-            if v['answered_current']:
-                print(v['username'])
+                if not v['answered_current'] and not v['is_host']:
+                    self.vk.method("messages.edit", {
+                        "peer_id": v['vk_id'],
+                        "cmid": v['cmid'],
+                        "message": 'Время вышло!',
+                    })
 
         self.save_state(state)
 
@@ -356,6 +356,10 @@ class GameSession:
             game_id = state['game_id']
 
             for vk_id, data in state['participants'].items():
+
+                if data.get('is_host', False):
+                    continue
+
                 username = data.get('username')
 
                 if not username:
@@ -367,7 +371,6 @@ class GameSession:
                     lambda u=username: User.objects.get(username=u)
                 )()
 
-                # ✅ ИСПРАВЛЕНО: правильно передаём data в lambda
                 await sync_to_async(
                     lambda u=user, d=data: GameResult.objects.update_or_create(
                         game_id=game_id,

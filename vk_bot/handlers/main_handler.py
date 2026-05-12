@@ -6,11 +6,11 @@ from vkbottle.bot import Message
 from vkbottle.framework.labeler import BotLabeler
 
 from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
+from vk_bot.utils.states import is_waiting
 from .callback_handlers.game_callback_handler import proccess_game_code, join_game, cancel_join, leave_lobby, \
     handle_answer_callback
 from .callback_handlers.main_callback_handler import my_profile, create_profile, go_main, hide_password, reset_password, \
     confirm_reset
-from vk_bot.utils.states import is_waiting
 
 logger = logging.getLogger(__name__)
 

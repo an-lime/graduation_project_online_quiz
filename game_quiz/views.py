@@ -1,17 +1,20 @@
 import json
 import random
+from datetime import datetime
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from game_quiz.models import QuizGame
 from game_quiz.models import QuizQuestionSet, GameParticipant
-from game_quiz.services.game_session import get_game_session
+from game_quiz.services.game_session import get_game_session, redis_client
 
 User = get_user_model()
 
@@ -156,11 +159,6 @@ def create_game_ajax(request):
             is_public=is_public
         )
 
-        GameParticipant.objects.get_or_create(
-            game=game,
-            player=request.user,
-        )
-
         return JsonResponse({
             'success': True,
             'message': 'Игра создана!',
@@ -225,7 +223,6 @@ def api_answer(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
 
-    import json
     data = json.loads(request.body)
     game_code = data.get('game_code', '').upper()
     vk_id = data.get('vk_id')
@@ -235,6 +232,17 @@ def api_answer(request):
         return JsonResponse({'error': 'Missing fields'}, status=400)
 
     try:
+        redis_key = redis_key = f"game_session:{game_code}"
+        state = json.loads(redis_client.get(redis_key))
+
+        started_at = datetime.fromisoformat(state['started_at'])
+        current_time = timezone.now()
+        time_diff = current_time - started_at
+
+        state['answer_time'] = int(time_diff.total_seconds())
+        print(state['answer_time'])
+        redis_client.setex(redis_key, getattr(settings, 'REDIS_TTL', None), json.dumps(state))
+
         session = get_game_session(game_code)
         result = session.handle_answer(vk_id, option_index)
 

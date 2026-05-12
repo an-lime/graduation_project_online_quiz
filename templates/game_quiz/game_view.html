@@ -58,7 +58,8 @@
                         <!-- Список участников (рендерится сервером) -->
                         <div class="players-list" id="players-list">
                             {% for p in participants %}
-                                <div class="player-item" data-username="{{ p.player.profile.vk_id }}" data-status="waiting">
+                                <div class="player-item" data-username="{{ p.player.profile.vk_id }}"
+                                     data-status="waiting">
                                     <span class="player-avatar"></span>
                                     <div class="player-info">
                                         <span class="player-name">{{ p.player.first_name|default:p.player.username }} {{ p.player.last_name|default:"" }}</span>

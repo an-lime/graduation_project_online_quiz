@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================
-    // 3. РЕНДЕР СПИСКА ВОПРОСОВ
+    // 3. РЕНДЕР СПИСК
     // =========================================
     function renderList() {
         els.list.innerHTML = '';
