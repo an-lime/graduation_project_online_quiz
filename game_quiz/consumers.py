@@ -4,7 +4,7 @@ import logging
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-from game_quiz.models import QuizGame, GameParticipant
+from game_quiz.models import QuizGame, GameParticipant, GameResult
 from game_quiz.services.game_session import get_game_session
 from game_quiz.services.question_sender import VKQuestionSender
 
@@ -104,6 +104,21 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
+        # 1. Пытаемся восстановить текущую активную игру из Redis
+        session = get_game_session(self.game_code)
+        state = session.get_state()
+
+        if state and state.get('is_running'):
+            await self.send(text_data=json.dumps({
+                'type': 'current_state',
+                'state': state
+            }))
+        else:
+            # 2. Если в Redis пусто, проверяем БД — возможно игра уже завершена
+            finished_data = await self.get_finished_game_data()
+            if finished_data:
+                await self.send(text_data=json.dumps(finished_data))
+
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
@@ -125,6 +140,34 @@ class GameConsumer(AsyncWebsocketConsumer):
                 await self._send_question(session, question_data)
             else:
                 await self.send(text_data=json.dumps({'type': 'game_ended'}))
+
+    @database_sync_to_async
+    def get_finished_game_data(self):
+        """Получение данных уже завершенной игры для отображения итогов после перезагрузки"""
+        try:
+            from game_quiz.models import QuizGame, GameResult
+            game = QuizGame.objects.get(game_code=self.game_code, status='finished')
+            results_qs = GameResult.objects.filter(game=game).select_related('player').order_by('rank')
+
+            results = []
+            for r in results_qs:
+                results.append({
+                    'rank': r.rank or 0,
+                    'name': f"{r.player.first_name} {r.player.last_name}" if r.player.first_name else r.player.username,
+                    'score': r.score,
+                    'correct': 0,
+                    # В БД у нас сейчас не хранятся correct_count, можно оставить 0 или добавить поле в модель
+                    'total': game.question_set.get_questions_count()
+                })
+
+            return {
+                'type': 'game_ended',
+                'results': results,
+                'total_questions': game.question_set.get_questions_count(),
+                'game_name': game.name
+            }
+        except Exception:
+            return None
 
     async def _send_question(self, session, question_data):
 
@@ -162,4 +205,4 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps(event))
 
     async def game_ended(self, event):
-        await self.send(text_data=json.dumps({'type': 'game_ended'}))
+        await self.send(text_data=json.dumps(event))

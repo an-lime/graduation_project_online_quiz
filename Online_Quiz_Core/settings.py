@@ -19,14 +19,12 @@ env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env.str("SECRET_KEY_DJANGO")
 DEBUG = True
 
-# Разрешаем локальные адреса. Для production добавь свой домен/IP
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 # Application definition
-# ⚠️ ВАЖНО: 'channels' должен быть ПЕРВЫМ в списке INSTALLED_APPS
 INSTALLED_APPS = [
     'channels',
-    'daphne',  # Добавляем daphne явно для корректной работы ASGI
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -66,21 +64,16 @@ TEMPLATES = [
     },
 ]
 
-# Указываем ASGI-приложение для Daphne
 ASGI_APPLICATION = 'Online_Quiz_Core.asgi.application'
 WSGI_APPLICATION = 'Online_Quiz_Core.wsgi.application'
 
-# Channel Layers (Redis для production / InMemory для локальной отладки)
-# Если Redis не запущен, закомментируй Redis и раскомментируй InMemory
+# Channel Layers
 CHANNEL_LAYERS = {
     "default": {
-        # Вариант 1: Redis (рекомендуется для production)
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [("127.0.0.1", 6379)],
         },
-        # Вариант 2: InMemory (для локальной разработки без Redis)
-        # "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
 }
 
@@ -120,7 +113,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Sessions & Auth
 SESSION_COOKIE_AGE = 1209600
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False  # True только при HTTPS в production
+SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 

@@ -11,6 +11,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from game_quiz.models import QuizGame, GameParticipant, GameResult
+from vk_bot.utils.support_functions import generate_event_random_id
 
 User = get_user_model()
 redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
@@ -146,7 +147,8 @@ class GameSession:
             'total_questions': len(state['questions']),
             'text': question['question'],
             'options': question.get('options') or question.get('answers') or [],
-            'correct_index': question.get('correctIndex') or question.get('correct_answer') or -1,
+            'correct_index': question.get('correctIndex') if question.get('correctIndex') is not None else question.get(
+                'correct_answer', -1),
             'explanation': question.get('explanation') or question.get('hint') or '',
             'timer': state['timer_seconds']
         }
@@ -270,14 +272,16 @@ class GameSession:
         state['question_active'] = False
 
         if timer_ended:
-            state = self.get_state()
             for k, v in state['participants'].items():
                 if not v['answered_current'] and not v['is_host']:
-                    self.vk.method("messages.edit", {
-                        "peer_id": v['vk_id'],
-                        "cmid": v['cmid'],
-                        "message": 'Время вышло!',
-                    })
+                    try:
+                        self.vk.method("messages.edit", {
+                            "peer_id": v['vk_id'],
+                            "cmid": v['cmid'],
+                            "message": 'Время вышло!',
+                        })
+                    except Exception as e:
+                        logger.error(f"Ошибка изменения сообщения ВК для vk_id {v.get('vk_id')}: {e}")
 
         self.save_state(state)
 
@@ -290,13 +294,17 @@ class GameSession:
 
         # ✅ ОТПРАВЛЯЕМ question_ended ВСЕГДА (даже если БД упала)
         question = state['questions'][state['current_idx']]
+        is_last = state['current_idx'] == len(state['questions']) - 1
+
         await self.channel_layer.group_send(
             f'game_{self.game_code}',
             {
                 'type': 'question_ended',
-                'correct_index': question.get('correctIndex') or question.get('correct_answer') or -1,
+                'correct_index': question.get('correctIndex') if question.get(
+                    'correctIndex') is not None else question.get('correct_answer', -1),
                 'explanation': question.get('explanation') or question.get('hint') or '',
-                'options': question.get('options') or question.get('answers') or []
+                'options': question.get('options') or question.get('answers') or [],
+                'is_last': is_last
             }
         )
 
@@ -332,10 +340,28 @@ class GameSession:
                     'score': p['score'],
                     'correct': p.get('correct_count', 0),
                     'total': p['total'],
-                    'is_host': p.get('is_host', False)
+                    'is_host': p.get('is_host', False),
+                    'vk_id': p['vk_id']  # <-- Убедись, что vk_id прокидывается для бота
                 }
                 for i, p in enumerate(sorted_players)
             ]
+
+            for player in final_results:
+                if player.get('vk_id'):
+                    msg = (
+                        f"🏁 Игра «{state.get('game_name', 'Викторина')}» завершена!\n\n"
+                        f"🏆 Вы заняли {player['rank']} место.\n"
+                        f"🎯 Правильных ответов: {player['correct']} из {player['total']}\n"
+                        f"⭐ Набрано очков: {player['score']}"
+                    )
+                    try:
+                        self.vk.method("messages.send", {
+                            "peer_id": player['vk_id'],
+                            "random_id": generate_event_random_id(),
+                            "message": msg
+                        })
+                    except Exception as e:
+                        logger.error(f"Ошибка отправки результата игроку {player['vk_id']}: {e}")
 
             await self.channel_layer.group_send(
                 f'game_{self.game_code}',

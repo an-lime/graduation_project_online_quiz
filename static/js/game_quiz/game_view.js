@@ -48,6 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleGameMessage(data) {
         switch (data.type) {
+            case 'current_state':
+                restoreGameState(data.state);
+                break;
             case 'game_started':
                 handleGameStarted();
                 break;
@@ -76,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (els.qNumber) els.qNumber.textContent = `Вопрос ${data.question_number} из ${data.total_questions}`;
         if (els.qText) els.qText.textContent = data.text;
+        if (els.btnNext) els.btnNext.style.display = 'none';
 
         // Сохраняем данные
         currentOptions = data.options || [];
@@ -202,6 +206,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (els.btnNext && config.isHost) {
             els.btnNext.style.display = 'inline-flex';
             els.btnNext.disabled = false;
+
+            if (data.is_last) {
+                els.btnNext.innerHTML = '<span class="btn-icon">🏁</span> Подвести итоги';
+            } else {
+                els.btnNext.innerHTML = '<span class="btn-icon">➡️</span> Следующий вопрос';
+            }
         }
 
         if (els.timerDisplay) {
@@ -290,24 +300,100 @@ document.addEventListener('DOMContentLoaded', () => {
         if (els.btnStart) els.btnStart.style.display = 'none';
     }
 
+    function restoreGameState(state) {
+        if (!state.is_running) return;
+
+        handleGameStarted();
+
+        if (state.current_idx >= 0 && state.current_idx < state.questions.length) {
+            const q = state.questions[state.current_idx];
+            const correctIdx = q.correctIndex !== undefined ? q.correctIndex : (q.correct_answer !== undefined ? q.correct_answer : -1);
+            const isLast = state.current_idx === state.questions.length - 1;
+
+            // 1. Восстанавливаем вопрос
+            renderQuestion({
+                question_number: state.current_idx + 1,
+                total_questions: state.questions.length,
+                text: q.question,
+                options: q.options || q.answers || [],
+                correct_index: correctIdx,
+                explanation: q.explanation || q.hint || '',
+                timer: 0 // таймер подхватится следующим тиком от сервера
+            });
+
+            // 2. Статусы игроков
+            Object.values(state.participants).forEach(p => {
+                if (p.answered_current) updatePlayerStatus(p.vk_id, 'answered');
+            });
+
+            // 3. Рейтинг
+            const leaderboard = Object.values(state.participants)
+                .filter(p => !p.is_host)
+                .sort((a, b) => b.score - a.score)
+                .map(p => ({
+                    name: p.first_name ? `${p.first_name} ${p.last_name}` : p.username,
+                    score: p.score,
+                    correct: p.correct_count || 0,
+                    total: p.total
+                }));
+            updateRating(leaderboard);
+
+            // 4. ГЛАВНОЕ: Если вопрос уже завершен, принудительно рисуем итоги вопроса и кнопку
+            if (!state.question_active) {
+                renderQuestionEnd({
+                    correct_index: correctIdx,
+                    explanation: q.explanation || q.hint || '',
+                    is_last: isLast
+                });
+            }
+        }
+    }
+
     function renderGameResults(data) {
+        console.log('🏆 Отображение результатов игры', data);
         const modal = document.getElementById('results-modal');
         const list = document.getElementById('results-list');
+
         if (!modal || !list) return;
 
+        // Скрываем панель управления ведущего, так как игра окончена
+        if (els.hostControls) {
+            els.hostControls.style.display = 'none';
+        }
+
+        // Если с бэкенда пришло название игры, обновляем его
+        const gameNameEl = document.getElementById('results-game-name');
+        if (gameNameEl && data.game_name) {
+            gameNameEl.textContent = data.game_name;
+        }
+
+        // Очищаем старый список
         list.innerHTML = '';
+
+        // Защита от пустых результатов (если никто не играл)
+        if (!data.results || data.results.length === 0) {
+            list.innerHTML = '<div class="results-row" style="justify-content: center;">Нет данных о результатах участников</div>';
+            modal.style.display = 'flex';
+            return;
+        }
+
+        // Рендерим таблицу
         data.results.forEach(player => {
             const row = document.createElement('div');
             row.className = `results-row player ${player.rank <= 3 ? 'top-' + player.rank : ''}`;
+
             const medal = player.rank === 1 ? '🥇' : player.rank === 2 ? '🥈' : player.rank === 3 ? '🥉' : `#${player.rank}`;
+
             row.innerHTML = `
                 <span class="col-rank">${medal}</span>
                 <span class="col-player">${player.name}</span>
-                <span class="col-stats">${player.correct}/${data.total_questions}</span>
+                <span class="col-stats">${player.correct} / ${data.total_questions}</span>
                 <span class="col-score">${player.score}</span>
             `;
             list.appendChild(row);
         });
+
+        // Показываем модальное окно
         modal.style.display = 'flex';
     }
 

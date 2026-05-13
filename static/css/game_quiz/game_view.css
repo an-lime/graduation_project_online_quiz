@@ -496,3 +496,135 @@
         padding: 16px 24px;
     }
 }
+
+/* =========================================
+МОДАЛЬНОЕ ОКНО РЕЗУЛЬТАТОВ (В СТИЛЕ САЙТА)
+========================================= */
+
+/* Затемняющий фон - используем основной цвет фона с прозрачностью */
+.results-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(44, 14, 55, 0.9); /* Это твой --bg-color #2c0e37 */
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Карточка результатов - повторяет стили .hero-card и .game-card */
+.results-card {
+    background: var(--card-bg); /* Белый фон */
+    border-radius: 32px;
+    border: 5px solid var(--primary); /* Желтая рамка */
+    /* Жесткая тень как у кнопок + эффект свечения из index.css */
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4),
+    0 15px 0 rgba(0, 0, 0, 0.15),
+    0 0 0 10px rgba(255, 222, 89, 0.12);
+    padding: 40px 30px;
+    max-width: 650px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    text-align: center;
+    font-family: var(--font-main);
+    transform: rotate(-1deg);
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Заголовок: используем градиент из твоего index.css (.text-gradient) */
+.results-header h2 {
+    margin: 0;
+    background: linear-gradient(135deg, #ff6b35 0%, #ffa623 50%, var(--primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.15)); /* Жесткая тень текста */
+    font-size: 42px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transform: rotate(1deg);
+}
+
+.results-subtitle {
+    color: var(--text-gray);
+    font-size: 18px;
+    font-weight: 800;
+    margin-top: 10px;
+    text-transform: uppercase;
+}
+
+/* Таблица с результатами */
+.results-table {
+    background: #fafafa;
+    border: 4px solid #eee;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.results-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 120px 80px;
+    padding: 15px 20px;
+    border-bottom: 3px solid #eee;
+    align-items: center;
+    color: var(--text-dark);
+    font-weight: 800;
+    font-size: 18px;
+    transition: transform 0.2s;
+}
+
+/* Анимация при наведении (смещение вправо как в .player-item) */
+.results-row:hover:not(.header) {
+    transform: translateX(5px);
+    border-color: var(--secondary);
+}
+
+/* Шапка таблицы */
+.results-row.header {
+    background: var(--primary); /* Желтая шапка */
+    color: var(--text-dark);
+    font-weight: 900;
+    border-bottom: 4px solid rgba(0, 0, 0, 0.1); /* Жесткая тень внутри */
+    text-transform: uppercase;
+    font-size: 16px;
+    letter-spacing: 1px;
+}
+
+.results-row:last-child {
+    border-bottom: none;
+}
+
+/* Подсветка топ-1 игрока (стиль взят из .host-card) */
+.results-row.top-1 {
+    background: linear-gradient(135deg, #fff9e0 0%, #fff 100%);
+    border-left: 6px solid var(--primary);
+}
+
+.col-rank {
+    font-size: 26px;
+    font-weight: 900;
+}
+
+.col-score {
+    font-weight: 900;
+    color: var(--accent-pink); /* Используем твой фирменный розовый #ff007f */
+    font-size: 24px;
+}
+
+.results-row.header .col-score {
+    color: var(--text-dark);
+    font-size: 16px;
+}
+
+/* Кнопки в футере */
+.results-footer {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 15px;
+}

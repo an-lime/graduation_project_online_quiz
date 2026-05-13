@@ -91,8 +91,6 @@ async def proccess_game_code(message: Message):
         return
 
     # 3. Поиск игры
-    # ✅ ВАЖНОЕ ИСПРАВЛЕНИЕ: select_related загружает question_set и owner сразу.
-    # Это предотвращает ошибку с выводом объекта SyncToAsync и ускоряет работу.
     try:
         game = await sync_to_async(
             lambda: QuizGame.objects.select_related('question_set', 'owner').get(game_code=code)
@@ -104,7 +102,7 @@ async def proccess_game_code(message: Message):
 
     # 4. Проверка статуса игры
     if game.status != 'waiting':
-        await message.answer(f"❌ Игра уже {game.get_status_display()}.")
+        await message.answer(f"❌ Игра уже идёт, либо завершилась.")
         return
 
     # 5. Проверка, не присоединён ли пользователь уже
@@ -175,7 +173,7 @@ async def leave_lobby(event: GroupTypes.MessageEvent):
         # 2. Удаляем участника из БД
         await sync_to_async(participant.delete)()
 
-        # 3. Отправляем событие в WebSocket (ручная отправка, как в join)
+        # 3. Отправляем событие в WebSocket
         channel_layer = get_channel_layer()
         await channel_layer.group_send(
             f'lobby_{game_code}',
@@ -225,7 +223,7 @@ async def handle_answer_callback(event: GroupTypes.MessageEvent, payload: dict):
             )
             return
 
-        # Отправляем ответ на Django (в отдельном потоке, чтобы не блокировать event loop)
+        # Отправляем ответ на Django
         def send_answer_sync():
             return requests.post(
                 f"{DJANGO_API_URL}/quiz/api/answer/",

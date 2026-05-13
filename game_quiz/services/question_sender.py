@@ -18,6 +18,7 @@ class VKQuestionSender:
         self.bot_token = getattr(settings, 'VK_BOT_TOKEN', None)
         self.api_version = '5.199'
         self.base_url = 'https://api.vk.com/method'
+        self.REDIS_TTL = getattr(settings, 'REDIS_TTL', None)
 
     def send_question_to_users(
             self,
@@ -28,8 +29,6 @@ class VKQuestionSender:
     ):
         """
         Отправить вопрос всем участникам
-
-        participants: [{'vk_id': 123, 'username': 'test'}, ...]
         """
         if not self.bot_token:
             logger.error("VK_BOT_TOKEN not configured")
@@ -43,16 +42,6 @@ class VKQuestionSender:
                 game_code=game_code
             )
 
-            # try:
-            #     self._send_message_with_keyboard(
-            #         peer_id=participant['vk_id'],
-            #         message=f"❓ {question_text}",
-            #         options=options,
-            #         game_code=game_code
-            #     )
-            # except Exception as e:
-            #     logger.error(f"Failed to send to {participant['username']}: {e}")
-
         return None
 
     def _send_message_with_keyboard(
@@ -65,7 +54,6 @@ class VKQuestionSender:
         """Отправить сообщение с inline-клавиатурой"""
 
         redis_key = f"game_session:{game_code}"
-        REDIS_TTL = getattr(settings, 'REDIS_TTL', None)
 
         # Создаём клавиатуру
         keyboard = {
@@ -117,7 +105,7 @@ class VKQuestionSender:
 
         if message_info["count"] > 0:
             state['participants'][str(peer_id)]['cmid'] = message_info["items"][0]["conversation_message_id"]
-            redis_client.setex(redis_key, REDIS_TTL, json.dumps(state))
+            redis_client.setex(redis_key, self.REDIS_TTL, json.dumps(state))
 
         if 'error' in result:
             raise Exception(f"VK API error: {result['error']}")

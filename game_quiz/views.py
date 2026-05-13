@@ -3,11 +3,12 @@ import random
 from datetime import datetime
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -108,6 +109,11 @@ def save_question_set(request, set_id=None):
 @login_required
 def lobby(request, code):
     game = get_object_or_404(QuizGame, game_code=code, owner=request.user)
+
+    # Запрещаем заходить в лобби, если игра уже началась или завершена
+    if game.status != 'waiting':
+        messages.warning(request, f"Лобби недоступно. Игра уже идёт, либо завершилась.")
+        return redirect('main:index')
 
     participants = game.participants.all()
 
@@ -232,7 +238,7 @@ def api_answer(request):
         return JsonResponse({'error': 'Missing fields'}, status=400)
 
     try:
-        redis_key = redis_key = f"game_session:{game_code}"
+        redis_key = f"game_session:{game_code}"
         state = json.loads(redis_client.get(redis_key))
 
         started_at = datetime.fromisoformat(state['started_at'])
