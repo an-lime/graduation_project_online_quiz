@@ -47,8 +47,17 @@ class GameSession:
                 )
             )()
 
-            if game.status != 'waiting':
-                logger.warning(f"Game {self.game_code} status is {game.status}, not waiting")
+            # СТАЛО:
+            # Так как мы меняем статус на 'playing' при входе в игру,
+            # блокируем старт только если игра уже 'finished'
+            if game.status == 'finished':
+                logger.warning(f"Game {self.game_code} status is already {game.status}")
+                return False
+
+            # Защита от двойного нажатия: проверяем, не запущена ли уже сессия в Redis
+            existing_state = self.get_state()
+            if existing_state and existing_state.get('is_running'):
+                logger.warning(f"Game {self.game_code} is already running in Redis")
                 return False
 
             participants_qs = await sync_to_async(
@@ -72,7 +81,7 @@ class GameSession:
                 'host_username': game.owner.username,
                 'questions': game.question_set.quiz_set_content,
                 'current_idx': -1,
-                'timer_seconds': 10,
+                'timer_seconds': 20,
                 'is_running': True,
                 'started_at': timezone.now().isoformat(),
                 'participants': {
@@ -93,13 +102,6 @@ class GameSession:
             }
 
             self.save_state(state)
-
-            await sync_to_async(
-                lambda: QuizGame.objects.filter(id=game.id).update(
-                    status='playing',
-                    started_at=timezone.now()
-                )
-            )()
 
             await self.channel_layer.group_send(
                 f'game_{self.game_code}', {'type': 'game_started'}
@@ -180,9 +182,6 @@ class GameSession:
         print(player)
 
         if is_correct:
-            # speed_bonus = max(0, (state['timer_seconds'] - player['answer_time']))
-            # player['score'] += 100 + speed_bonus
-            # player['correct_count'] = player.get('correct_count', 0) + 1
             player['score'] += 10
             player['correct_count'] = player.get('correct_count', 0) + 1
         player['total'] += 1
@@ -231,11 +230,52 @@ class GameSession:
 
             remaining = state['timer_seconds']
 
+            # 1. Получаем текст вопроса и варианты ответов
+            current_question = state['questions'][state['current_idx']]
+            question_text = current_question.get('question', 'Вопрос')
+            options = current_question.get('options') or current_question.get('answers') or []
+
+            # 2. Заново собираем inline-клавиатуру
+            keyboard = {"inline": True, "buttons": []}
+            for i in range(0, len(options), 2):
+                row = []
+                for j in range(2):
+                    idx = i + j
+                    if idx < len(options):
+                        row.append({
+                            "action": {
+                                "type": "callback",
+                                "label": str(options[idx]),
+                                "payload": json.dumps({
+                                    "action": "answer",
+                                    "game_code": self.game_code,
+                                    "option_index": idx
+                                })
+                            }
+                        })
+                keyboard["buttons"].append(row)
+
+            keyboard_json = json.dumps(keyboard)
+
             while remaining >= 0 and state.get('question_active'):
                 await self.channel_layer.group_send(
                     f'game_{self.game_code}',
                     {'type': 'timer_update', 'seconds_left': remaining}
                 )
+
+                # 3. Редактируем сообщение, обязательно передавая keyboard
+                if remaining == 10:
+                    for k, v in state['participants'].items():
+                        if not v.get('is_host') and not v.get('answered_current') and v.get('cmid'):
+                            try:
+                                self.vk.method("messages.edit", {
+                                    "peer_id": v['vk_id'],
+                                    "cmid": v['cmid'],
+                                    "message": f"❓ {question_text}\n\n⏳ Осталось 10 секунд!",
+                                    "keyboard": keyboard_json  # <--- Возвращаем клавиатуру на место
+                                })
+                            except Exception as e:
+                                logger.error(f"Ошибка добавления 10 секунд для {v.get('vk_id')}: {e}")
 
                 if remaining == 0:
                     logger.info(f"⏱ Timer expired for {self.game_code}")
@@ -244,7 +284,6 @@ class GameSession:
 
                 await asyncio.sleep(1)
                 remaining -= 1
-                # ✅ Обновляем состояние на случай изменений
                 state = self.get_state()
                 if not state:
                     break

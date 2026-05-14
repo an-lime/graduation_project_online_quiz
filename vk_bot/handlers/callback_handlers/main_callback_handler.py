@@ -18,6 +18,10 @@ from vk_bot.utils.support_functions import generate_event_random_id
 logger = logging.getLogger(__name__)
 
 
+def generate_random_password(length=16):
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+
 async def go_main(event: GroupTypes.MessageEvent):
     kb = create_main_menu_keyboard()
 
@@ -76,7 +80,7 @@ async def my_profile(event: GroupTypes.MessageEvent):
 
 async def create_profile(event: GroupTypes.MessageEvent):
     username = f"vk_{event.object.user_id}"
-    password = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+    password = generate_random_password()
 
     await create_user_and_profile(username, password, event)
 
@@ -136,7 +140,7 @@ async def confirm_reset(event: GroupTypes.MessageEvent):
             )
             return
 
-    password = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+    password = generate_random_password()
 
     await sync_to_async(lambda: user.set_password(password))()
     user.profile.last_password_reset = timezone.now()

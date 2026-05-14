@@ -31,6 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
         els.hostControls.style.display = 'none';
     }
 
+    function getMedal(rank) {
+        return rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+    }
+
     function connectWebSocket() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws/game/${config.gameCode}/`;
@@ -274,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
         els.ratingList.innerHTML = '';
         leaderboard.forEach((p, i) => {
             const pos = i + 1;
-            const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : `#${pos}`;
+            const medal = getMedal(pos)
             const div = document.createElement('div');
             div.className = `rating-item ${pos <= 3 ? 'top-' + pos : ''}`;
             div.innerHTML = `
@@ -382,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('div');
             row.className = `results-row player ${player.rank <= 3 ? 'top-' + player.rank : ''}`;
 
-            const medal = player.rank === 1 ? '🥇' : player.rank === 2 ? '🥈' : player.rank === 3 ? '🥉' : `#${player.rank}`;
+            const medal = getMedal(player.rank);
 
             row.innerHTML = `
                 <span class="col-rank">${medal}</span>

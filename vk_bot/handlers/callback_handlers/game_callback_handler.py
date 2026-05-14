@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 env = Env()
 env.read_env(BASE_DIR / ".env")
+DJANGO_API_URL = env.str("DJANGO_API_URL")
 
 
 async def join_game(event: GroupTypes.MessageEvent):
@@ -200,8 +201,6 @@ async def leave_lobby(event: GroupTypes.MessageEvent):
 
 async def handle_answer_callback(event: GroupTypes.MessageEvent, payload: dict):
     """Обработка нажатия на вариант ответа в игре"""
-
-    DJANGO_API_URL = env.str("DJANGO_API_URL")
     try:
         game_code = payload.get("game_code", "").upper()
         option_index = payload.get("option_index")
@@ -240,7 +239,6 @@ async def handle_answer_callback(event: GroupTypes.MessageEvent, payload: dict):
 
         # Реакция бота на результат
         if result.get("success"):
-            print('success')
             await event.ctx_api.messages.edit(
                 peer_id=peer_id,
                 cmid=cmid,

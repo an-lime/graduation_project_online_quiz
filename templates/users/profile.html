@@ -179,43 +179,70 @@
 
                     <!-- Вкладка: Статистика -->
                     <div class="tab-pane fade" id="stats" role="tabpanel">
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                <div class="stat-card">
-                                    <div class="stat-value">{{ total_games|default:0 }}</div>
-                                    <div class="stat-label">🎮 Всего игр</div>
+                        <div class="profile-card">
+                            <h3 class="mb-4">📊 Ваша активность</h3>
+
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="stat-mini-card">
+                                        <span class="stat-label">Игр сыграно</span>
+                                        <span class="stat-value">{{ stats.games_played }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="stat-mini-card">
+                                        <span class="stat-label">Всего очков</span>
+                                        <span class="stat-value">{{ stats.total_score }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="stat-mini-card">
+                                        <span class="stat-label">Побед (🥇)</span>
+                                        <span class="stat-value text-warning">{{ stats.wins }}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="stat-card">
-                                    <div class="stat-value">{{ total_score|default:0 }}</div>
-                                    <div class="stat-label">⭐ Общий счёт</div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="stat-card">
-                                    <div class="stat-value">{{ best_rank|default:"—" }}</div>
-                                    <div class="stat-label">🏆 Лучшее место</div>
-                                </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-jackbox">
+                                    <thead>
+                                    <tr>
+                                        <th>Дата</th>
+                                        <th>Название игры</th>
+                                        <th>Место</th>
+                                        <th>Очки</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for result in game_history %}
+                                        <tr>
+                                            <td>{{ result.game.finished_at|date:"d.m.Y H:i" }}</td>
+                                            <td>{{ result.game.name }}</td>
+                                            <td>
+                                                {% if result.rank == 1 %}
+                                                    <span class="badge bg-warning text-dark">🥇 1 место</span>
+                                                {% elif result.rank == 2 %}
+                                                    <span class="badge bg-secondary">🥈 2 место</span>
+                                                {% elif result.rank == 3 %}
+                                                    <span class="badge bg-danger">🥉 3 место</span>
+                                                {% else %}
+                                                    #{{ result.rank }}
+                                                {% endif %}
+                                            </td>
+                                            <td class="font-weight-bold text-primary">{{ result.score }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4">
+                                                <p class="text-muted">Вы еще не участвовали ни в одной игре.</p>
+                                                <a href="/" class="btn btn-primary btn-sm btn-jackbox">Найти игру</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                        <h4 class="mb-3 text-start">📜 История игр</h4>
-                        {% if game_history %}
-                            <div class="list-group">
-                                {% for game in game_history %}
-                                    <div class="list-group-item list-group-item-action">
-                                        <div class="d-flex w-100 justify-content-between">
-                                            <h5 class="mb-1">{{ game.quiz_title }}</h5>
-                                            <small class="text-muted">{{ game.date|date:"d.m.Y" }}</small>
-                                        </div>
-                                        <p class="mb-1">Место: <strong>{{ game.rank }}</strong> | Очки:
-                                            <strong>{{ game.score }}</strong> | Игроков: {{ game.total_players }}</p>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="alert alert-info text-center">🎮 Вы ещё не участвовали ни в одной игре</div>
-                        {% endif %}
                     </div>
 
                 </div>

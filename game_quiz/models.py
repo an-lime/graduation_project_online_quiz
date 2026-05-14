@@ -1,3 +1,5 @@
+import random
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import JSONField
@@ -48,7 +50,6 @@ class QuizQuestionSet(models.Model):
 
     def shuffle_questions(self):
         """Перемешать вопросы"""
-        import random
         random.shuffle(self.quiz_set_content)
         self.save()
 
@@ -88,6 +89,14 @@ class QuizGame(models.Model):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def generate_unique_code(cls):
+        """Генерирует уникальный 4-значный код комнаты"""
+        while True:
+            code = ''.join(random.choices('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', k=4))
+            if not cls.objects.filter(game_code=code).exists():
+                return code
 
 
 class GameResult(models.Model):

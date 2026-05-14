@@ -13,38 +13,30 @@ logger = logging.getLogger(__name__)
 
 class LobbyConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        print(f"🔌 [WS] Connect attempt: {self.scope['path']}")
+        logger.info(f"🔌 [WS] Connect attempt: {self.scope['path']}")
 
         try:
-            # 1. Получаем код игры
             self.game_code = self.scope['url_route']['kwargs']['game_code'].upper()
             self.room_group_name = f'lobby_{self.game_code}'
-            print(f"🔍 [WS] Checking game: {self.game_code}")
+            logger.info(f"🔍 [WS] Checking game: {self.game_code}")
 
-            # 2. Проверка существования игры (БД запрос)
             if not await self.check_game_exists():
-                print(f"❌ [WS] Game {self.game_code} not found")
+                logger.warning(f"❌ [WS] Game {self.game_code} not found")
                 await self.close()
                 return
 
-            # 3. Присоединяемся к группе каналов
-            print(f"✅ [WS] Adding to group: {self.room_group_name}")
-            await self.channel_layer.group_add(
-                self.room_group_name,
-                self.channel_name
-            )
+            logger.info(f"✅ [WS] Adding to group: {self.room_group_name}")
+            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
-            # 4. ⚠️ КРИТИЧНО: Принимаем соединение (должно быть ВЫЗВАНО)
-            print(f"🤝 [WS] Accepting connection")
+            logger.info(f"🤝 [WS] Accepting connection")
             await self.accept()
 
-            # 5. Отправляем начальный список участников
             participants = await self.get_participants()
             await self.send(text_data=json.dumps({
                 'type': 'participants_list',
                 'participants': participants
             }))
-            print(f"📤 [WS] Sent initial list")
+            logger.info(f"📤 [WS] Sent initial list")
 
         except Exception as e:
             # Ловим любую ошибку, чтобы увидеть её в консоли

@@ -1,5 +1,4 @@
 import json
-import random
 from datetime import datetime
 
 from django.conf import settings
@@ -148,12 +147,7 @@ def create_game_ajax(request):
             return JsonResponse({'success': False, 'error': 'Некорректный код комнаты'})
 
         if QuizGame.objects.filter(game_code=game_code).exists():
-            # Генерируем новый уникальный код, если этот занят
-            while True:
-                new_code = ''.join(random.choices('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', k=4))
-                if not QuizGame.objects.filter(game_code=new_code).exists():
-                    game_code = new_code
-                    break
+            game_code = QuizGame.generate_unique_code()
 
         question_set = get_object_or_404(QuizQuestionSet, id=quiz_set_id)
 
@@ -208,6 +202,13 @@ def start_lobby_game(request, code):
 @login_required
 def game_view(request, game_code):
     game = get_object_or_404(QuizGame, game_code=game_code)
+
+    if game.status == 'waiting' and request.user == game.owner:
+        game.status = 'playing'
+        if not game.started_at:
+            game.started_at = timezone.now()
+        game.save()
+
     # Загружаем участников, исключая ведущего (он выводится отдельно)
     participants = GameParticipant.objects.filter(game=game).exclude(player=request.user).select_related(
         'player__profile')

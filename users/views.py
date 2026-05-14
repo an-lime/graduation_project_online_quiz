@@ -1,6 +1,4 @@
 import json
-import random
-import string
 from datetime import datetime, timedelta
 
 from django.contrib import messages
@@ -17,7 +15,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from Online_Quiz_Core import settings
-from users.utils import terminate_all_user_sessions
+from game_quiz.models import GameResult
+from users.utils import terminate_all_user_sessions, generate_verification_code
 
 User = get_user_model()
 
@@ -42,7 +41,25 @@ def login_view(request):
 @login_required
 def profile(request):
     user = request.user
-    return render(request, 'users/profile.html')
+
+    # Получаем историю игр пользователя, сортируем по дате (сначала новые)
+    # select_related('game') подтянет данные об игре одним запросом
+    game_history = GameResult.objects.filter(player=user).select_related('game').order_by('-game__finished_at')
+
+    # Считаем общую статистику
+    total_score = sum(r.score for r in game_history)
+    games_played = game_history.count()
+    wins = game_history.filter(rank=1).count()
+
+    return render(request, 'users/profile.html', {
+        'user': user,
+        'game_history': game_history,
+        'stats': {
+            'total_score': total_score,
+            'games_played': games_played,
+            'wins': wins,
+        }
+    })
 
 
 @login_required
@@ -180,7 +197,7 @@ def send_verify_code(request):
             # Добавил 'success': False для корректной обработки на фронтенде
             return JsonResponse({'success': False, 'error': 'Email не указан'})
 
-        code = ''.join(random.choices(string.digits, k=6))
+        code = generate_verification_code()
 
         request.session['email_verification_code'] = code
         request.session['email_to_verify'] = email

@@ -19,6 +19,7 @@ class VKQuestionSender:
         self.api_version = '5.199'
         self.base_url = 'https://api.vk.com/method'
         self.REDIS_TTL = getattr(settings, 'REDIS_TTL', None)
+        self.vk = vk_api.VkApi(token=self.bot_token) if self.bot_token else None
 
     def send_question_to_users(
             self,
@@ -35,12 +36,15 @@ class VKQuestionSender:
             return {'success': False, 'error': 'Bot token not configured'}
 
         for participant in participants:
-            self._send_message_with_keyboard(
-                peer_id=participant['vk_id'],
-                message=f"❓ {question_text}",
-                options=options,
-                game_code=game_code
-            )
+            try:
+                self._send_message_with_keyboard(
+                    peer_id=participant['vk_id'],
+                    message=f"❓ {question_text}",
+                    options=options,
+                    game_code=game_code
+                )
+            except Exception as e:
+                logger.error(f"Failed to send to {participant['username']}: {e}")
 
         return None
 
@@ -80,7 +84,6 @@ class VKQuestionSender:
                     })
             keyboard["buttons"].append(row)
 
-        print('peer: ', peer_id)
         # Отправляем сообщение
         response = requests.post(
             f"{self.base_url}/messages.send",
@@ -98,8 +101,7 @@ class VKQuestionSender:
         result = response.json()
         state = json.loads(redis_client.get(redis_key))
 
-        vk = vk_api.VkApi(token=self.bot_token)
-        message_info = vk.method("messages.getById", {
+        message_info = self.vk.method("messages.getById", {
             "message_ids": [result["response"]]
         })
 
