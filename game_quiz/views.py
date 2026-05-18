@@ -33,6 +33,19 @@ def create_game(request):
 
 
 @login_required
+def games_list(request):
+    """Список публичных активных игр"""
+    public_games = QuizGame.objects.filter(
+        is_public=True,
+        status__in=['waiting', 'playing']
+    ).select_related('owner', 'question_set').order_by('-created_at')
+
+    return render(request, 'game_quiz/games_list.html', {
+        'public_games': public_games,
+    })
+
+
+@login_required
 def set_editor(request, set_id=None):
     if set_id:
         question_set = get_object_or_404(QuizQuestionSet, id=set_id, owner=request.user)
@@ -107,11 +120,10 @@ def save_question_set(request, set_id=None):
 
 @login_required
 def lobby(request, code):
-    game = get_object_or_404(QuizGame, game_code=code, owner=request.user)
+    game = get_object_or_404(QuizGame, game_code=code)
 
     # Запрещаем заходить в лобби, если игра уже началась или завершена
     if game.status != 'waiting':
-        messages.warning(request, f"Лобби недоступно. Игра уже идёт, либо завершилась.")
         return redirect('main:index')
 
     participants = game.participants.all()
@@ -210,7 +222,7 @@ def game_view(request, game_code):
         game.save()
 
     # Загружаем участников, исключая ведущего (он выводится отдельно)
-    participants = GameParticipant.objects.filter(game=game).exclude(player=request.user).select_related(
+    participants = GameParticipant.objects.filter(game=game).exclude(player=game.owner).select_related(
         'player__profile')
 
     return render(request, 'game_quiz/game_view.html', {

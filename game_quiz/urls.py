@@ -6,6 +6,7 @@ app_name = 'game_quiz'
 
 urlpatterns = [
     path('', views.create_game, name='create_game'),
+    path('list/', views.games_list, name='games_list'),
 
     # Редактор наборов вопросов
     path('sets/new/', views.set_editor, name='create_set'),

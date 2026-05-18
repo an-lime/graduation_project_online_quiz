@@ -76,14 +76,21 @@
                 </div>
 
                 <!-- Кнопки управления -->
-                <div class="lobby-actions">
-                    <button type="button" id="btn-start-game" class="btn btn-primary btn-jackbox btn-block" disabled>
-                        <span class="btn-icon">🚀</span> Начать игру
-                    </button>
-                    <button type="button" id="btn-settings" class="btn btn-secondary btn-jackbox btn-block">
-                        <span class="btn-icon">⚙️</span> Настройки
-                    </button>
-                </div>
+                {% if request.user == game.owner %}
+
+                    <div class="lobby-actions">
+                        <button type="button" id="btn-start-game" class="btn btn-primary btn-jackbox btn-block"
+                                disabled>
+                            <span class="btn-icon">🚀</span> Начать игру
+                        </button>
+                    </div>
+
+                {% else %}
+                    <!-- Наблюдатель видит только статус -->
+                    <div class="spectator-notice">
+                        <p>👁 Вы наблюдаете за игрой</p>
+                    </div>
+                {% endif %}
 
             </section>
         </div>

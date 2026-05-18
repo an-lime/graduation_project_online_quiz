@@ -216,7 +216,7 @@
                                     <tbody>
                                     {% for result in game_history %}
                                         <tr>
-                                            <td>{{ result.game.finished_at|date:"d.m.Y H:i" }}</td>
+                                            <td>{{ result.game.started_at|date:"d.m.Y H:i" }}</td>
                                             <td>{{ result.game.name }}</td>
                                             <td>
                                                 {% if result.rank == 1 %}
@@ -235,7 +235,6 @@
                                         <tr>
                                             <td colspan="4" class="text-center py-4">
                                                 <p class="text-muted">Вы еще не участвовали ни в одной игре.</p>
-                                                <a href="/" class="btn btn-primary btn-sm btn-jackbox">Найти игру</a>
                                             </td>
                                         </tr>
                                     {% endfor %}

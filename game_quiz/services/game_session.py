@@ -3,6 +3,7 @@ import json
 import logging
 
 import redis
+import requests
 import vk_api
 from asgiref.sync import sync_to_async, async_to_sync
 from channels.layers import get_channel_layer
@@ -11,6 +12,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from game_quiz.models import QuizGame, GameParticipant, GameResult
+from vk_bot.keyboards.lobby_keyboard import create_lobby_keyboard
 from vk_bot.utils.support_functions import generate_event_random_id
 
 User = get_user_model()
@@ -47,7 +49,6 @@ class GameSession:
                 )
             )()
 
-            # СТАЛО:
             # Так как мы меняем статус на 'playing' при входе в игру,
             # блокируем старт только если игра уже 'finished'
             if game.status == 'finished':
@@ -106,6 +107,9 @@ class GameSession:
             await self.channel_layer.group_send(
                 f'game_{self.game_code}', {'type': 'game_started'}
             )
+
+            await self._notify_game_start_via_bot(participants_qs, game)
+
             logger.info(f"Game {self.game_code} started successfully")
             return True
 
@@ -115,6 +119,30 @@ class GameSession:
         except Exception as e:
             logger.error(f"Error in start_game: {e}", exc_info=True)
             return False
+
+    async def _notify_game_start_via_bot(self, participants_qs, game):
+        """Отправляет через бота уведомление о старте игры"""
+        for p in participants_qs:
+            vk_id = p['player__profile__vk_id']
+            if not vk_id:
+                continue
+
+            try:
+                message = (
+                    f"🎮 Игра \"{game.name}\" начинается!\n\n"
+                    f"Следите за вопросами на экране трансляции. "
+                    f"Удачи! 🍀"
+                )
+
+                self.vk.method("messages.send", {
+                    "peer_id": vk_id,
+                    "message": message,
+                    "random_id": generate_event_random_id(),
+                    "keyboard": create_lobby_keyboard(game.code)
+                })
+
+            except Exception as e:
+                logger.error(f"Failed to send start notification to {p['player__username']}: {e}")
 
     async def next_question(self):
         """Загружает следующий вопрос и возвращает данные для отправки"""
@@ -420,6 +448,17 @@ class GameSession:
         try:
             game_id = state['game_id']
 
+            # 1. Вычисляем текущие места игроков
+            # Исключаем ведущего и сортируем по очкам (по убыванию)
+            sorted_players = sorted(
+                [p for p in state['participants'].values() if not p.get('is_host', False)],
+                key=lambda x: x['score'],
+                reverse=True
+            )
+
+            # 2. Создаем словарь для быстрого получения ранга по username
+            ranks = {player['username']: index + 1 for index, player in enumerate(sorted_players)}
+
             for vk_id, data in state['participants'].items():
 
                 if data.get('is_host', False):
@@ -431,22 +470,27 @@ class GameSession:
                     logger.warning(f"No username for participant {vk_id}")
                     continue
 
+                # Находим место конкретного игрока
+                player_rank = ranks.get(username)
+
                 # Сначала получаем пользователя
                 user = await sync_to_async(
                     lambda u=username: User.objects.get(username=u)
                 )()
 
+                # 3. Добавляем сохранение 'rank' в defaults
                 await sync_to_async(
-                    lambda u=user, d=data: GameResult.objects.update_or_create(
+                    lambda u=user, d=data, r=player_rank: GameResult.objects.update_or_create(
                         game_id=game_id,
                         player=u,
                         defaults={
-                            'score': d['score']
+                            'score': d['score'],
+                            'rank': r
                         }
                     )
                 )()
 
-            logger.info(f"Results saved for game {game_id}")
+            logger.info(f"Results and ranks saved for game {game_id}")
 
         except Exception as e:
             logger.error(f"Error saving results: {e}")

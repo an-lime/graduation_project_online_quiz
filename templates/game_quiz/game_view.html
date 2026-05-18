@@ -81,8 +81,13 @@
                         </button>
                         <button type="button" id="btn-next-question" class="btn btn-secondary btn-jackbox" disabled
                                 style="display:none;">
-                            <span class="btn-icon">️</span> Следующий вопрос
+                            <span class="btn-icon">⏭️</span> Следующий вопрос
                         </button>
+                    </div>
+                {% else %}
+                    <!-- Наблюдатель видит только статус -->
+                    <div class="spectator-notice">
+                        <p>👁 Вы наблюдаете за игрой</p>
                     </div>
                 {% endif %}
 

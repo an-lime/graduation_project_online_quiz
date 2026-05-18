@@ -1,73 +1,79 @@
-<!DOCTYPE html>
-<html lang="ru">
+{% extends 'base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ОНЛАЙН-КВИЗ | Активные игры</title>
-    <link rel="stylesheet" href="../styles/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
-</head>
+{% block title %}ОНЛАЙН-КВИЗ | Список игр{% endblock %}
 
-<body>
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/game_quiz/games_list.css' %}">
+{% endblock %}
 
-    <div class="bg-shape shape-1"></div>
-    <div class="bg-shape shape-2"></div>
-
+{% block content %}
+<!-- ✅ ОБЁРТКА С ГРАДИЕНТНЫМ ФОНОМ -->
+<div class="games-list-page-wrapper">
     <div class="container">
-        <header class="header">
-            <div class="logo">
-                <span class="logo-icon">🎲</span>
-                <h1>ОНЛАЙН-КВИЗ</h1>
+        <div class="games-list-page-header">
+            <h1>🎮 Публичные игры</h1>
+            <p>Присоединяйтесь к активным викторинам или наблюдайте за игрой</p>
+        </div>
+
+        {% if public_games %}
+        <div class="games-list-page-grid">
+            {% for game in public_games %}
+            <div class="games-list-page-card" data-game-code="{{ game.game_code }}">
+                <div class="games-list-page-card-header">
+                    <span class="games-list-page-status {% if game.status == 'waiting' %}games-list-page-status-waiting{% else %}games-list-page-status-playing{% endif %}">
+                        {% if game.status == 'waiting' %}
+                            ⏳ Ожидание
+                        {% elif game.status == 'playing' %}
+                            🟢 Игра идёт
+                        {% endif %}
+                    </span>
+                    <span class="games-list-page-code">{{ game.game_code }}</span>
+                </div>
+
+                <div class="games-list-page-card-body">
+                    <h3 class="games-list-page-name">{{ game.name }}</h3>
+                    <p class="games-list-page-set">🧩 {{ game.question_set.name }}</p>
+                    <p class="games-list-page-host">👤 Ведущий: {{ game.owner.username }}</p>
+
+                    <div class="games-list-page-stats">
+                        <span>👥 {{ game.participants.count }} игроков</span>
+                        <span>📝 {{ game.question_set.get_questions_count }} вопросов</span>
+                    </div>
+                </div>
+
+                <div class="games-list-page-card-footer">
+                    {% if game.status == 'waiting' %}
+                        <a href="{% url 'game_quiz:lobby' game.game_code %}" class="games-list-page-btn games-list-page-btn-primary">
+                            {% if request.user == game.owner %}
+                                🔧 Управление
+                            {% else %}
+                                🚀 Присоединиться
+                            {% endif %}
+                        </a>
+                    {% elif game.status == 'playing' %}
+                        <a href="{% url 'game_quiz:game_view' game.game_code %}" class="games-list-page-btn games-list-page-btn-secondary">
+                            {% if request.user == game.owner %}
+                                🎮 Трансляция
+                            {% else %}
+                                👁 Наблюдать
+                            {% endif %}
+                        </a>
+                    {% endif %}
+                </div>
             </div>
-            <nav class="nav-buttons">
-                <a href="../main/index.html" class="btn btn-secondary">← На главную</a>
-            </nav>
-        </header>
-
-        <main class="main-content">
-            <section class="card">
-                <h2>Активные трансляции</h2>
-                <p>Выберите игру для просмотра</p>
-
-                <div class="games-list">
-                    <div class="game-item">
-                        <div class="game-info">
-                            <h4>🧠 Общие знания</h4>
-                            <p class="game-meta">Ведущий: Александр | Код: ABCD</p>
-                            <span class="status-badge live">● В ИГРЕ</span>
-                        </div>
-                        <a href="game_view.html" class="btn btn-secondary">Смотреть</a>
-                    </div>
-
-                    <div class="game-item">
-                        <div class="game-info">
-                            <h4>🎬 Киноманы</h4>
-                            <p class="game-meta">Ведущий: Мария | Код: XYZ1</p>
-                            <span class="status-badge live">● В ИГРЕ</span>
-                        </div>
-                        <a href="game_view.html" class="btn btn-secondary">Смотреть</a>
-                    </div>
-
-                    <div class="game-item">
-                        <div class="game-info">
-                            <h4>🎵 Музыкальный квиз</h4>
-                            <p class="game-meta">Ведущий: Дмитрий | Код: MUS2</p>
-                            <span class="status-badge waiting">⏳ ОЖИДАНИЕ</span>
-                        </div>
-                        <a href="lobby.html" class="btn btn-secondary">В лобби</a>
-                    </div>
-                </div>
-
-                <div class="games-list-footer">
-                    <p>Нет подходящей игры?</p>
-                    <a href="../main/index.html" class="btn btn-primary">Создать свою</a>
-                </div>
-            </section>
-        </main>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="games-list-page-empty">
+            <div class="games-list-page-empty-icon">🎲</div>
+            <h2>Нет активных игр</h2>
+            <p>Создайте свою игру или зайдите позже</p>
+            <a href="{% url 'game_quiz:create_game' %}" class="games-list-page-empty-btn">
+                ✨ Создать игру
+            </a>
+        </div>
+        {% endif %}
     </div>
-
-    <script src="../scripts/script.js"></script>
-</body>
-
-</html>
+</div>
+{% endblock %}
