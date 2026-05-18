@@ -68,6 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleWebSocketMessage(data) {
+
+        console.log('📩 Received:', data.type);
+
         switch (data.type) {
             case 'participants_list':
                 // Инициализация списка участников (полный список при подключении)
@@ -82,8 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 handleParticipantLeft(data.username);
                 break;
 
-            case 'game_started':
-                handleGameStarted();
+            case 'go_game_page':
+                handleGoGamePage();
                 break;
         }
     }
@@ -120,8 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function handleGameStarted() {
-        showToast('🚀 Игра начинается!', 'success');
+    function handleGoGamePage() {
+        console.log('🚀 Game starting!');
+        showToast('🚀 Игра начинается! Переход в комнату...', 'success');
         state.gameStarted = true;
         setTimeout(() => {
             window.location.href = `/quiz/play/${config.gameCode}/`;
@@ -224,11 +228,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (data.success && data.redirect_url) {
-                    showToast('🚀 Игра начинается! Переход в комнату...', 'success');
-                    // Плавный редирект на страницу трансляции
-                    setTimeout(() => {
-                        window.location.href = data.redirect_url;
-                    }, 1200);
+
+                    if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+                        console.log('send go_game_page')
+                        state.ws.send(JSON.stringify({action: 'go_game_page'}));
+                        els.btnStart.disabled = true;
+                    }
+
                 } else {
                     showToast(data.error || 'Ошибка запуска игры', 'error');
                     els.btnStart.disabled = false;
@@ -240,13 +246,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 els.btnStart.disabled = false;
                 els.btnStart.innerHTML = '<span class="btn-icon">🚀</span> Начать игру';
             }
-        });
-    }
-
-    if (els.btnSettings) {
-        els.btnSettings.addEventListener('click', () => {
-            showToast('⚙️ Настройки комнаты (заглушка)', 'info');
-            // Здесь можно открыть модальное окно с настройками
         });
     }
 

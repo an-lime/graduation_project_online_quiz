@@ -1,8 +1,11 @@
 import json
 import logging
+import traceback
 
+import requests
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
+from django.conf import settings
 
 from game_quiz.models import QuizGame, GameParticipant, GameResult
 from game_quiz.services.game_session import get_game_session
@@ -41,7 +44,6 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             # Ловим любую ошибку, чтобы увидеть её в консоли
             print(f"💥 [WS] ERROR in connect: {type(e).__name__}: {e}")
-            import traceback
             traceback.print_exc()
             try:
                 await self.close()
@@ -59,6 +61,82 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         if data.get('type') == 'ping':
             await self.send(text_data=json.dumps({'type': 'pong'}))
+
+
+        elif data.get('action') == 'go_game_page':
+
+            # Отправляем событие ВСЕМ в группе лобби
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {'type': 'go_game_page'}
+            )
+            # ✅ ОТПРАВЛЯЕМ УВЕДОМЛЕНИЕ ЧЕРЕЗ БОТА
+            await self._notify_game_start_via_bot()
+
+    @database_sync_to_async
+    def get_game_and_participants(self):
+        """Получает игру и участников для отправки уведомлений"""
+        game = QuizGame.objects.select_related('owner').get(game_code=self.game_code)
+        participants = GameParticipant.objects.filter(
+            game=game
+        ).select_related('player__profile')
+        return game, [
+            {
+                'username': p.player.username,
+                'vk_id': p.player.profile.vk_id if hasattr(p.player, 'profile') else None
+            }
+            for p in participants
+        ]
+
+    async def _notify_game_start_via_bot(self):
+        """Отправляет уведомление о старте игры через бота"""
+        bot_token = getattr(settings, 'VK_BOT_TOKEN', None)
+        if not bot_token:
+            logger.warning("VK_BOT_TOKEN not configured, skipping bot notifications")
+            return
+
+        try:
+            game, participants = await self.get_game_and_participants()
+            game_name = game.name
+
+            for p in participants:
+                vk_id = p.get('vk_id')
+                username = p.get('username')
+
+                if not vk_id:
+                    logger.warning(f"No vk_id for participant {username}, skipping")
+                    continue
+
+                message = (
+                    f"🎮 Игра \"{game_name}\" начинается!\n\n"
+                    f"Следите за вопросами на экране трансляции. "
+                    f"Удачи! 🍀"
+                )
+
+                try:
+                    response = requests.post(
+                        'https://api.vk.com/method/messages.send',
+                        data={
+                            'peer_id': vk_id,
+                            'message': message,
+                            'random_id': 0,
+                            'access_token': bot_token,
+                            'v': '5.199'
+                        },
+                        timeout=3
+                    )
+
+                    result = response.json()
+                    if 'error' in result:
+                        logger.error(f"VK API error: {result['error']}")
+                    else:
+                        logger.info(f"Sent start notification to {username} (vk_id={vk_id})")
+
+                except Exception as e:
+                    logger.error(f"Failed to send to {username}: {e}", exc_info=True)
+
+        except Exception as e:
+            logger.error(f"Failed to send bot notifications: {e}", exc_info=True)
 
     @database_sync_to_async
     def check_game_exists(self):
@@ -86,6 +164,12 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'participant_left',
             'username': event['username']
+        }))
+
+    async def go_game_page(self, event):
+        # Отправляем событие редиректа всем клиентам в лобби
+        await self.send(text_data=json.dumps({
+            'type': 'go_game_page'
         }))
 
 
@@ -137,7 +221,6 @@ class GameConsumer(AsyncWebsocketConsumer):
     def get_finished_game_data(self):
         """Получение данных уже завершенной игры для отображения итогов после перезагрузки"""
         try:
-            from game_quiz.models import QuizGame, GameResult
             game = QuizGame.objects.get(game_code=self.game_code, status='finished')
             results_qs = GameResult.objects.filter(game=game).select_related('player').order_by('rank')
 

@@ -3,7 +3,6 @@ import json
 import logging
 
 import redis
-import requests
 import vk_api
 from asgiref.sync import sync_to_async, async_to_sync
 from channels.layers import get_channel_layer
@@ -12,7 +11,6 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from game_quiz.models import QuizGame, GameParticipant, GameResult
-from vk_bot.keyboards.lobby_keyboard import create_lobby_keyboard
 from vk_bot.utils.support_functions import generate_event_random_id
 
 User = get_user_model()
@@ -108,8 +106,6 @@ class GameSession:
                 f'game_{self.game_code}', {'type': 'game_started'}
             )
 
-            await self._notify_game_start_via_bot(participants_qs, game)
-
             logger.info(f"Game {self.game_code} started successfully")
             return True
 
@@ -119,30 +115,6 @@ class GameSession:
         except Exception as e:
             logger.error(f"Error in start_game: {e}", exc_info=True)
             return False
-
-    async def _notify_game_start_via_bot(self, participants_qs, game):
-        """Отправляет через бота уведомление о старте игры"""
-        for p in participants_qs:
-            vk_id = p['player__profile__vk_id']
-            if not vk_id:
-                continue
-
-            try:
-                message = (
-                    f"🎮 Игра \"{game.name}\" начинается!\n\n"
-                    f"Следите за вопросами на экране трансляции. "
-                    f"Удачи! 🍀"
-                )
-
-                self.vk.method("messages.send", {
-                    "peer_id": vk_id,
-                    "message": message,
-                    "random_id": generate_event_random_id(),
-                    "keyboard": create_lobby_keyboard(game.code)
-                })
-
-            except Exception as e:
-                logger.error(f"Failed to send start notification to {p['player__username']}: {e}")
 
     async def next_question(self):
         """Загружает следующий вопрос и возвращает данные для отправки"""
