@@ -1,79 +1,86 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}ОНЛАЙН-КВИЗ | Список игр{% endblock %}
+{% block title %}ОНЛАЙН-ВИКТОРИНА | Активные игры{% endblock %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/game_quiz/games_list.css' %}">
+    <link rel="stylesheet" href="{% static 'css/game_quiz/games_list.css' %}">
 {% endblock %}
 
 {% block content %}
-<!-- ✅ ОБЁРТКА С ГРАДИЕНТНЫМ ФОНОМ -->
-<div class="games-list-page-wrapper">
-    <div class="container">
-        <div class="games-list-page-header">
-            <h1>🎮 Публичные игры</h1>
-            <p>Присоединяйтесь к активным викторинам или наблюдайте за игрой</p>
+    <div class="games-list-container">
+
+        <div class="games-list-header text-center mb-5">
+            <span class="header-icon">🎮</span>
+            <h1 class="page-title">АКТИВНЫЕ ИГРЫ</h1>
+            <p class="page-subtitle text-white">Присоединяйтесь к ожидающим лобби или создайте свое!</p>
+        </div>
+
+        <div class="games-controls card-box mb-5">
+            <div class="quick-join">
+                <input type="text" id="quick-join-code" class="form-control code-input" placeholder="КОД (4 БУКВЫ)"
+                       maxlength="4" autocomplete="off">
+                <button type="button" id="quick-join-btn" class="btn-jackbox btn-primary">ВОЙТИ ПО КОДУ</button>
+            </div>
+            <a href="{% url 'game_quiz:create_game' %}" class="btn-jackbox btn-secondary">СОЗДАТЬ ИГРУ</a>
         </div>
 
         {% if public_games %}
-        <div class="games-list-page-grid">
-            {% for game in public_games %}
-            <div class="games-list-page-card" data-game-code="{{ game.game_code }}">
-                <div class="games-list-page-card-header">
-                    <span class="games-list-page-status {% if game.status == 'waiting' %}games-list-page-status-waiting{% else %}games-list-page-status-playing{% endif %}">
-                        {% if game.status == 'waiting' %}
-                            ⏳ Ожидание
-                        {% elif game.status == 'playing' %}
-                            🟢 Игра идёт
-                        {% endif %}
-                    </span>
-                    <span class="games-list-page-code">{{ game.game_code }}</span>
-                </div>
+            <div class="games-grid">
+                {% for game in public_games %}
+                    <div class="game-list-card">
 
-                <div class="games-list-page-card-body">
-                    <h3 class="games-list-page-name">{{ game.name }}</h3>
-                    <p class="games-list-page-set">🧩 {{ game.question_set.name }}</p>
-                    <p class="games-list-page-host">👤 Ведущий: {{ game.owner.username }}</p>
+                        <div class="card-top">
+                            <h2 class="game-name">{{ game.name|truncatechars:18 }}</h2>
+                            {% if game.status == 'waiting' %}
+                                <span class="status-badge waiting">ОЖИДАНИЕ</span>
+                            {% else %}
+                                <span class="status-badge playing">В ИГРЕ</span>
+                            {% endif %}
+                        </div>
 
-                    <div class="games-list-page-stats">
-                        <span>👥 {{ game.participants.count }} игроков</span>
-                        <span>📝 {{ game.question_set.get_questions_count }} вопросов</span>
+                        <div class="card-info">
+                            <p><strong>Код:</strong> <span class="highlight-code">{{ game.game_code }}</span></p>
+                            <p><strong>Ведущий:</strong> {{ game.owner.username }}</p>
+                            <p><strong>Набор:</strong> {{ game.question_set.name|truncatechars:20 }}</p>
+                            <p><strong>Игроков:</strong> {{ game.participants.count }} 👥</p>
+                        </div>
+
+                        <div class="card-actions mt-3">
+                            {% if game.status == 'waiting' %}
+                                <a href="{% url 'game_quiz:lobby' game.game_code %}"
+                                   class="btn-jackbox btn-primary w-100">
+                                    {% if request.user == game.owner %}
+                                        ⚙️ УПРАВЛЕНИЕ
+                                    {% else %}
+                                        🚀 ПРИСОЕДИНИТЬСЯ
+                                    {% endif %}
+                                </a>
+                            {% else %}
+                                <a href="{% url 'game_quiz:game_view' game.game_code %}"
+                                   class="btn-jackbox btn-secondary w-100">
+                                    {% if request.user == game.owner %}
+                                        🎮 ТРАНСЛЯЦИЯ
+                                    {% else %}
+                                        👁 НАБЛЮДАТЬ
+                                    {% endif %}
+                                </a>
+                            {% endif %}
+                        </div>
+
                     </div>
-                </div>
-
-                <div class="games-list-page-card-footer">
-                    {% if game.status == 'waiting' %}
-                        <a href="{% url 'game_quiz:lobby' game.game_code %}" class="games-list-page-btn games-list-page-btn-primary">
-                            {% if request.user == game.owner %}
-                                🔧 Управление
-                            {% else %}
-                                🚀 Присоединиться
-                            {% endif %}
-                        </a>
-                    {% elif game.status == 'playing' %}
-                        <a href="{% url 'game_quiz:game_view' game.game_code %}" class="games-list-page-btn games-list-page-btn-secondary">
-                            {% if request.user == game.owner %}
-                                🎮 Трансляция
-                            {% else %}
-                                👁 Наблюдать
-                            {% endif %}
-                        </a>
-                    {% endif %}
-                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
         {% else %}
-        <div class="games-list-page-empty">
-            <div class="games-list-page-empty-icon">🎲</div>
-            <h2>Нет активных игр</h2>
-            <p>Создайте свою игру или зайдите позже</p>
-            <a href="{% url 'game_quiz:create_game' %}" class="games-list-page-empty-btn">
-                ✨ Создать игру
-            </a>
-        </div>
+            <div class="empty-state card-box text-center">
+                <h2>ПОКА ПУСТО 😢</h2>
+                <p>Никто еще не создал публичную игру. Станьте первым!</p>
+            </div>
         {% endif %}
+
     </div>
-</div>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'js/game_quiz/games_list.js' %}"></script>
 {% endblock %}

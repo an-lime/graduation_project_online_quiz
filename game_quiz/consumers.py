@@ -172,6 +172,10 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             'type': 'go_game_page'
         }))
 
+    async def game_aborted(self, event):
+        """Ловим событие отмены игры и пересылаем на фронт лобби"""
+        await self.send(text_data=json.dumps(event))
+
 
 class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -263,6 +267,13 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     async def game_started(self, event):
         await self.send(text_data=json.dumps({'type': 'game_started'}))
+
+    async def participant_left(self, event):
+        await self.send(text_data=json.dumps(event))
+
+    async def game_aborted(self, event):
+        # Пересылает сигнал об экстренном завершении игры на frontend
+        await self.send(text_data=json.dumps(event))
 
     async def question_update(self, event):
         await self.send(text_data=json.dumps(event))

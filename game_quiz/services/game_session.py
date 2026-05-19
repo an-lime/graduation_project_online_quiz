@@ -11,6 +11,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from game_quiz.models import QuizGame, GameParticipant, GameResult
+from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
 from vk_bot.utils.support_functions import generate_event_random_id
 
 User = get_user_model()
@@ -364,12 +365,18 @@ class GameSession:
                 )
             )()
 
+            await sync_to_async(
+                lambda: GameParticipant.objects.filter(game__game_code=self.game_code).delete()
+            )()
+
             # Исключаем ведущего из результатов
             sorted_players = sorted(
                 [p for p in state['participants'].values() if not p.get('is_host', False)],
                 key=lambda x: x['score'],
                 reverse=True
             )
+
+            main_menu_kb = create_main_menu_keyboard()
 
             final_results = [
                 {
@@ -397,7 +404,8 @@ class GameSession:
                         self.vk.method("messages.send", {
                             "peer_id": player['vk_id'],
                             "random_id": generate_event_random_id(),
-                            "message": msg
+                            "message": msg,
+                            "keyboard": main_menu_kb  # <-- ПРИКРЕПЛЯЕМ КЛАВИАТУРУ
                         })
                     except Exception as e:
                         logger.error(f"Ошибка отправки результата игроку {player['vk_id']}: {e}")
@@ -507,6 +515,62 @@ class GameSession:
             for p in state['participants'].values()
             if p['vk_id'] and p['username'] != host_username
         ]
+
+    async def remove_player(self, vk_id: int) -> bool:
+        """Асинхронный метод для корректного удаления игрока из сессии"""
+        state = self.get_state()
+
+        # УБИРАЕМ ПРОВЕРКУ `not state.get('is_running')`,
+        # потому что игроки могут выйти ДО нажатия кнопки "Старт"
+        if not state:
+            return False
+
+        vk_id_str = str(vk_id)
+        if vk_id_str in state.get('participants', {}):
+            # 1. Удаляем игрока из словаря
+            del state['participants'][vk_id_str]
+            self.save_state(state)
+            logger.info(f"🚪 Игрок {vk_id_str} удален из сессии {self.game_code}")
+
+            # 2. Ищем, остались ли НЕ ведущие (обычные игроки)
+            players_left = [p for p in state['participants'].values() if not p.get('is_host')]
+
+            if not players_left:
+                # Никого не осталось — прерываем и удаляем игру даже до старта!
+                logger.info(f"🛑 Все игроки покинули игру {self.game_code}. Отмена игры.")
+                await self._abort_game()
+                return True
+
+            # 3. Если идет вопрос (И игра уже была запущена), проверяем таймер
+            if state.get('is_running') and state.get('question_active'):
+                if self._check_all_answered(state):
+                    logger.info(f"✅ Вышедший игрок был последним неответившим. Досрочно завершаем вопрос.")
+                    await self._finish_question()
+
+            return True
+        return False
+
+    async def _abort_game(self):
+        """Полностью удаляет игру и рассылает сигнал об отмене"""
+        from asgiref.sync import sync_to_async
+        from game_quiz.models import QuizGame
+
+        state = self.get_state()
+        if state:
+            await self._stop_timer()
+            # Очищаем Redis
+            redis_client.delete(self.redis_key)
+
+        # Удаляем игру из базы данных (каскадно удалятся участники и результаты)
+        await sync_to_async(
+            lambda: QuizGame.objects.filter(game_code=self.game_code).delete()
+        )()
+
+        # Отправляем сигнал отмены в WebSocket для браузера
+        await self.channel_layer.group_send(
+            f'game_{self.game_code}',
+            {'type': 'game_aborted'}
+        )
 
 
 def get_game_session(game_code: str) -> GameSession:

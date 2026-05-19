@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -12,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from game_quiz.models import QuizGame
-from game_quiz.models import QuizQuestionSet, GameParticipant
+from game_quiz.models import QuizQuestionSet
 from game_quiz.services.game_session import get_game_session, redis_client
 
 User = get_user_model()
@@ -119,11 +120,18 @@ def save_question_set(request, set_id=None):
 
 @login_required
 def lobby(request, code):
-    game = get_object_or_404(QuizGame, game_code=code)
+    # Пытаемся найти игру по коду
+    try:
+        game = QuizGame.objects.get(game_code=code)
+    except QuizGame.DoesNotExist:
+        # Если код неверный, показываем ошибку и возвращаем к списку
+        messages.error(request, "❌ Игры с таким кодом не существует!")
+        return redirect('game_quiz:games_list')  # Убедись, что 'game_quiz:games_list' совпадает с твоим urls.py
 
     # Запрещаем заходить в лобби, если игра уже началась или завершена
     if game.status != 'waiting':
-        return redirect('main:index')
+        messages.warning(request, "⚠️ Эта игра уже началась или завершена.")
+        return redirect('game_quiz:games_list')
 
     participants = game.participants.all()
 
@@ -213,24 +221,21 @@ def start_lobby_game(request, code):
 
 @login_required
 def game_view(request, game_code):
+    """Отображение страницы самой игры (трансляции)"""
+    game_code = game_code.upper()
     game = get_object_or_404(QuizGame, game_code=game_code)
 
-    if game.status == 'waiting' and request.user == game.owner:
-        game.status = 'playing'
-        if not game.started_at:
-            game.started_at = timezone.now()
-        game.save()
+    # 👇 ЗАЩИТА: Если игра ещё не началась (в статусе ожидания), отправляем в лобби 👇
+    if game.status == 'waiting':
+        return redirect('game_quiz:lobby', game_code=game_code)
+    # 👆 КОНЕЦ ВСТАВКИ 👆
 
-    # Загружаем участников, исключая ведущего (он выводится отдельно)
-    participants = GameParticipant.objects.filter(game=game).exclude(player=game.owner).select_related(
-        'player__profile')
-
-    return render(request, 'game_quiz/game_view.html', {
+    # Твой старый код функции, который рендерит страницу игры:
+    context = {
         'game': game,
         'game_code': game_code,
-        'is_host': request.user == game.owner,
-        'participants': participants,  # ✅ Передаём в контекст
-    })
+    }
+    return render(request, 'game_quiz/game_view.html', context)
 
 
 @csrf_exempt
@@ -246,6 +251,14 @@ def api_answer(request):
     game_code = data.get('game_code', '').upper()
     vk_id = data.get('vk_id')
     option_index = data.get('option_index')
+
+    try:
+        game = QuizGame.objects.get(game_code=game_code)
+    except QuizGame.DoesNotExist:
+        return JsonResponse({
+            "success": False,
+            "error": "Игра уже завершена или была отменена."
+        })
 
     if not all([game_code, vk_id, option_index is not None]):
         return JsonResponse({'error': 'Missing fields'}, status=400)

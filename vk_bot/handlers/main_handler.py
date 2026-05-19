@@ -6,9 +6,9 @@ from vkbottle.bot import Message
 from vkbottle.framework.labeler import BotLabeler
 
 from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
-from vk_bot.utils.states import is_waiting
-from .callback_handlers.game_callback_handler import proccess_game_code, join_game, cancel_join, leave_lobby, \
-    handle_answer_callback
+from vk_bot.utils.states import get_state, UserState
+from .callback_handlers.game_callback_handler import process_game_code, join_game, cancel_join, leave_lobby, \
+    handle_answer_callback, confirm_leave_lobby, cancel_leave_lobby
 from .callback_handlers.main_callback_handler import my_profile, create_profile, go_main, hide_password, reset_password, \
     confirm_reset
 
@@ -29,8 +29,10 @@ async def start_command(message: Message):
 
 @main_labeler.message()
 async def catch_join_code(message: Message):
-    if is_waiting(message.from_id):
-        await proccess_game_code(message)
+    current_state = await get_state(message.from_id)
+
+    if current_state == UserState.WAITING_FOR_CODE.value:
+        await process_game_code(message)
         return
 
 
@@ -54,7 +56,7 @@ async def callback_catch(event: GroupTypes.MessageEvent):
     action = payload.get("action")
     logger.info(f"📥 Callback received: action={action}, payload={payload}")
 
-    match event.object.payload.get("action"):
+    match action:
         case "go_main":
             await go_main(event)
         case "my_profile":
@@ -72,6 +74,10 @@ async def callback_catch(event: GroupTypes.MessageEvent):
         case "cancel_join":
             await cancel_join(event)
         case "leave_lobby":
-            await leave_lobby(event)
+            await leave_lobby(event, payload)
+        case "confirm_leave_lobby":
+            await confirm_leave_lobby(event, payload)
+        case "cancel_leave_lobby":
+            await cancel_leave_lobby(event, payload)
         case "answer":
             await handle_answer_callback(event, payload)

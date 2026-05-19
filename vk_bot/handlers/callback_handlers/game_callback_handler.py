@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-import requests
+import aiohttp
 from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
 from environs import Env
@@ -11,10 +11,11 @@ from vkbottle_types import GroupTypes
 
 from Online_Quiz_Core.settings import BASE_DIR
 from game_quiz.models import QuizGame, GameParticipant
-from vk_bot.keyboards.lobby_keyboard import create_lobby_keyboard
+from game_quiz.services.game_session import get_game_session
+from vk_bot.keyboards.lobby_keyboard import create_lobby_keyboard, create_leave_confirm_keyboard
 from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
 from vk_bot.utils.db import get_current_user
-from vk_bot.utils.states import mark_waiting, clear_waiting
+from vk_bot.utils.states import set_state, UserState, clear_state
 from vk_bot.utils.support_functions import generate_event_random_id
 
 logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ async def join_game(event: GroupTypes.MessageEvent):
         )
         return
 
-    mark_waiting(event.object.user_id)
+    await set_state(event.object.user_id, UserState.WAITING_FOR_CODE)
 
     kb = (
         Keyboard()
@@ -61,7 +62,7 @@ async def join_game(event: GroupTypes.MessageEvent):
 async def cancel_join(event: GroupTypes.MessageEvent):
     """Отмена ввода кода"""
 
-    clear_waiting(event.object.user_id)
+    await clear_state(event.object.user_id)
 
     kb = create_main_menu_keyboard()
     await event.ctx_api.messages.send(
@@ -72,11 +73,11 @@ async def cancel_join(event: GroupTypes.MessageEvent):
     )
 
 
-async def proccess_game_code(message: Message):
+async def process_game_code(message: Message):
     """Обработка введённого кода комнаты (без FSM, через менеджер состояний)"""
 
     # 1. Сразу убираем из списка ожидающих, чтобы не зациклить
-    clear_waiting(message.from_id)
+    await clear_state(message.from_id)
 
     code = message.text.strip().upper() if message.text else ""
     user = await get_current_user(message.from_id)
@@ -88,7 +89,7 @@ async def proccess_game_code(message: Message):
     # 2. Валидация длины кода
     if len(code) != 4:
         await message.answer("❌ Код должен состоять из 4 символов. Попробуйте ещё раз:")
-        mark_waiting(message.from_id)  # Возвращаем в режим ожидания
+        await set_state(message.from_id, UserState.WAITING_FOR_CODE)  # Возвращаем в режим ожидания
         return
 
     # 3. Поиск игры
@@ -98,7 +99,7 @@ async def proccess_game_code(message: Message):
         )()
     except QuizGame.DoesNotExist:
         await message.answer("❌ Игра с таким кодом не найдена. Проверьте и попробуйте снова:")
-        mark_waiting(message.from_id)
+        await set_state(message.from_id, UserState.WAITING_FOR_CODE)
         return
 
     # 4. Проверка статуса игры
@@ -152,51 +153,144 @@ async def proccess_game_code(message: Message):
     )
 
 
-async def leave_lobby(event: GroupTypes.MessageEvent):
-    """Обработка выхода участника из лобби"""
-    game_code = event.object.payload.get("game_code", "").upper()
-    user = await get_current_user(event.object.user_id)
+async def leave_lobby(event: GroupTypes.MessageEvent, payload: dict):
+    """1. Запрос на подтверждение выхода (вызывается из нижней клавиатуры)"""
+    game_code = payload.get("game_code", "").upper()
+    kb = create_leave_confirm_keyboard(game_code)
+
+    # Так как cmid нет, мы не редактируем, а отправляем НОВОЕ сообщение с инлайн-кнопками
+    await event.ctx_api.messages.send(
+        peer_id=event.object.peer_id,
+        random_id=generate_event_random_id(),
+        message="❓ Вы уверены, что хотите покинуть игру?",
+        keyboard=kb
+    )
+
+
+async def cancel_leave_lobby(event: GroupTypes.MessageEvent, payload: dict):
+    """2. Отмена выхода (возврат к клавиатуре лобби)"""
+    game_code = payload.get("game_code", "").upper()
+    kb = create_lobby_keyboard(game_code)
+    message_text = "Вы остались в лобби. Ожидайте начала игры."
+
+    # Безопасно проверяем наличие cmid у инлайн-кнопки отмены
+    cmid = getattr(event.object, 'conversation_message_id', None)
+
+    if cmid and cmid != 0:
+        try:
+            await event.ctx_api.messages.edit(
+                peer_id=event.object.peer_id,
+                conversation_message_id=cmid,
+                message=message_text,
+                keyboard=kb
+            )
+            return
+        except Exception as e:
+            logger.warning(f"Не удалось отредактировать сообщение при отмене выхода: {e}")
+
+    # Если cmid не нашелся, просто отправляем новое сообщение
+    await event.ctx_api.messages.send(
+        peer_id=event.object.peer_id,
+        random_id=generate_event_random_id(),
+        message=message_text,
+        keyboard=kb
+    )
+
+
+async def confirm_leave_lobby(event: GroupTypes.MessageEvent, payload: dict):
+    """3. Подтверждённый выход из лобби или активной игры (с защитой от повторных кликов)"""
+    game_code = payload.get("game_code", "").upper()
+    user_id = event.object.user_id
+    user = await get_current_user(user_id)
 
     if not user or not game_code:
         return
 
+    was_removed = False
+    username = user.username
+    game_aborted = False
+
     try:
-        # 1. Находим запись участника, чтобы взять имя и удалить
+        # 1. Проверяем и удаляем участника из БД Django
         participant = await sync_to_async(
-            lambda: GameParticipant.objects.select_related('player').get(
+            lambda: GameParticipant.objects.select_related('player', 'game__owner').get(
                 game__game_code=game_code,
                 player=user
             )
         )()
-
+        game = participant.game
         username = participant.player.username
 
-        # 2. Удаляем участника из БД
+        # Удаляем игрока
         await sync_to_async(participant.delete)()
+        was_removed = True
 
-        # 3. Отправляем событие в WebSocket
-        channel_layer = get_channel_layer()
-        await channel_layer.group_send(
-            f'lobby_{game_code}',
-            {
-                'type': 'participant_left',
-                'username': username
-            }
-        )
+        # ПРОБЛЕМА РЕШЕНА: Проверяем, остались ли еще обычные игроки (кроме создателя) в БД
+        remaining_players = await sync_to_async(
+            lambda: GameParticipant.objects.filter(game=game).exists()
+        )()
 
-        # 4. Отправляем ответ пользователю с кнопкой "Назад"
-        kb = create_main_menu_keyboard()
-
-        await event.ctx_api.messages.send(
-            peer_id=event.object.peer_id,
-            random_id=generate_event_random_id(),
-            message="✅ Вы успешно покинули лобби.",
-            keyboard=kb
-        )
+        if not remaining_players:
+            # Если это был последний игрок, экстренно удаляем игру из БД до старта!
+            await sync_to_async(game.delete)()
+            game_aborted = True
 
     except GameParticipant.DoesNotExist:
-        # Если пользователь и так не в игре (например, двойной клик)
         pass
+
+    # 2. Пробуем удалить из Redis-сессии (если игра уже была запущена)
+    session = get_game_session(game_code)
+    channel_layer = get_channel_layer()
+
+    if game_aborted:
+        # Если игра отменена на этапе БД, рассылаем сигнал смерти игры и чистим Redis
+        await session._abort_game()
+        # Дублируем сигнал в лобби на всякий случай
+        await channel_layer.group_send(f'lobby_{game_code}', {'type': 'game_aborted'})
+    else:
+        # Обычное удаление из Redis (внутри себя тоже может отменить игру, если она шла)
+        redis_removed = await session.remove_player(user_id)
+        if redis_removed:
+            was_removed = True
+
+        # 3. Рассылаем обычные сигналы выхода в браузер
+        if was_removed:
+            await channel_layer.group_send(
+                f'lobby_{game_code}',
+                {'type': 'participant_left', 'username': username, 'vk_id': user_id}
+            )
+            await channel_layer.group_send(
+                f'game_{game_code}',
+                {'type': 'participant_left', 'username': username, 'vk_id': user_id}
+            )
+
+    # 4. Отправляем меню пользователю
+    if was_removed:
+        message_text = "✅ Вы успешно покинули игру."
+    else:
+        message_text = "ℹ️ Вы уже покинули эту игру или лобби больше не существует."
+
+    kb = create_main_menu_keyboard()
+    cmid = getattr(event.object, 'conversation_message_id', None)
+
+    if cmid and cmid != 0:
+        try:
+            await event.ctx_api.messages.edit(
+                peer_id=event.object.peer_id,
+                conversation_message_id=cmid,
+                message=message_text,
+                keyboard=kb
+            )
+            return
+        except Exception as e:
+            logger.warning(f"Ошибка редактирования сообщения при подтверждении выхода: {e}")
+
+    await event.ctx_api.messages.send(
+        peer_id=event.object.peer_id,
+        random_id=generate_event_random_id(),
+        message=message_text,
+        keyboard=kb
+    )
 
 
 async def handle_answer_callback(event: GroupTypes.MessageEvent, payload: dict):
@@ -217,25 +311,29 @@ async def handle_answer_callback(event: GroupTypes.MessageEvent, payload: dict):
         if not user:
             await event.ctx_api.messages.send(
                 peer_id=peer_id,
-                random_id=0,
+                random_id=generate_event_random_id(),
                 message="❌ Ошибка: вы не авторизованы в системе викторины."
             )
             return
 
-        # Отправляем ответ на Django
-        def send_answer_sync():
-            return requests.post(
-                f"{DJANGO_API_URL}/quiz/api/answer/",
-                json={
-                    "game_code": game_code,
-                    "vk_id": user_id,
-                    "option_index": option_index
-                },
-                timeout=5
-            ).json()
+        # Отправляем ответ на Django с использованием aiohttp
+        async with aiohttp.ClientSession() as session:
+            # aiohttp.ClientTimeout позволяет удобно настроить таймаут
+            timeout = aiohttp.ClientTimeout(total=5)
 
-        # ✅ Безопасный вызов синхронного requests в async контексте
-        result = await asyncio.to_thread(send_answer_sync)
+            async with session.post(
+                    f"{DJANGO_API_URL}/quiz/api/answer/",
+                    json={
+                        "game_code": game_code,
+                        "vk_id": user_id,
+                        "option_index": option_index
+                    },
+                    timeout=timeout
+            ) as resp:
+                # Генерируем исключение, если сервер ответил ошибкой (например, 500 или 404)
+                resp.raise_for_status()
+                # Асинхронно читаем JSON-ответ
+                result = await resp.json()
 
         # Реакция бота на результат
         if result.get("success"):
@@ -248,15 +346,24 @@ async def handle_answer_callback(event: GroupTypes.MessageEvent, payload: dict):
             await event.ctx_api.messages.edit(
                 peer_id=peer_id,
                 cmid=cmid,
-                message=f"⏱ Время вышло! {result.get("error")}"
+                message=f"⏱ Время вышло!"  # <-- исправлены кавычки
             )
 
-    except requests.exceptions.RequestException as e:
+    except aiohttp.ClientError as e:
+        # aiohttp.ClientError — это базовый класс для всех сетевых ошибок aiohttp
         logger.error(f"🌐 Network error sending answer to Django: {e}")
         await event.ctx_api.messages.edit(
             peer_id=event.object.peer_id,
-            cmid=event.object.conversation_message_id,
+            cmid=cmid,
             message="⚠️ Ошибка связи с сервером. Попробуйте позже."
+        )
+    except asyncio.TimeoutError:
+        # Отдельно ловим таймаут, если сервер Django "завис"
+        logger.error("🌐 Timeout error: Django server took too long to respond.")
+        await event.ctx_api.messages.edit(
+            peer_id=event.object.peer_id,
+            cmid=cmid,
+            message="⚠️ Сервер слишком долго не отвечает. Попробуйте позже."
         )
     except Exception as e:
         logger.error(f"💥 Error in handle_answer_callback: {e}", exc_info=True)

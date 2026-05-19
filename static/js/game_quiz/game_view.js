@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleGameMessage(data) {
+        console.log('📩 Received:', data.type);
         switch (data.type) {
             case 'current_state':
                 restoreGameState(data.state);
@@ -75,6 +76,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'game_ended':
                 renderGameResults(data);
+                break;
+            case 'participant_left':
+                removePlayerFromGame(data.vk_id);
+                break;
+            case 'game_aborted':
+                renderGameAborted();
                 break;
         }
     }
@@ -399,6 +406,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Показываем модальное окно
         modal.style.display = 'flex';
+    }
+
+    // Функция для отображения модалки при преждевременном завершении
+    function renderGameAborted() {
+        console.log('🛑 Игра отменена: все игроки вышли');
+        const modal = document.getElementById('results-modal');
+        const list = document.getElementById('results-list');
+        const headerObj = document.querySelector('.results-header h2');
+        const subtitleObj = document.getElementById('results-game-name');
+
+        if (!modal || !list) return;
+
+        if (els.hostControls) els.hostControls.style.display = 'none';
+
+        if (headerObj) {
+            headerObj.textContent = "🛑 Игра прервана!";
+            headerObj.style.color = "#FF006E";
+        }
+        if (subtitleObj) subtitleObj.textContent = "Все игроки покинули сессию.";
+
+        // 👇 1. СКРЫВАЕМ ШАПКУ ТАБЛИЦЫ 👇
+        const tableHeader = document.querySelector('.results-row.header');
+        if (tableHeader) tableHeader.style.display = 'none';
+
+        // 👇 2. ДОБАВЛЯЕМ grid-column: 1 / -1 👇
+        list.innerHTML = `
+            <div style="grid-column: 1 / -1; justify-content: center; text-align: center; color: #e74c3c; font-weight: 600; padding: 20px;">
+                Игра удалена, результаты не сохранены, так как не осталось ни одного участника.
+            </div>
+        `;
+
+        const createNewBtn = document.querySelector('.results-footer .btn-secondary');
+        if (createNewBtn) createNewBtn.style.display = 'none';
+
+        modal.style.display = 'flex';
+    }
+
+    // Функция удаления игрока из списка на экране
+    function removePlayerFromGame(vk_id) {
+        // У тебя в game_view.html список участников рендерится с data-username="{{ vk_id }}"
+        const playerEl = document.querySelector(`.player-item[data-username="${vk_id}"]`);
+
+        if (playerEl) {
+            // Красивая анимация исчезновения
+            playerEl.style.transition = "all 0.3s ease";
+            playerEl.style.opacity = "0";
+            playerEl.style.transform = "scale(0.9)";
+
+            // Удаляем из DOM после завершения анимации
+            setTimeout(() => {
+                playerEl.remove();
+            }, 300);
+        }
     }
 
     if (els.btnStart && config.isHost) {
