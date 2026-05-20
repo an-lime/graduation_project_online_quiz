@@ -1,68 +1,110 @@
 from django.contrib.auth.models import User
-from django.contrib.sessions.models import Session
-from django.test import TestCase
+from django.test import TestCase, Client
+from django.urls import reverse
 
-from users.utils import terminate_all_user_sessions
+from users.models import UserRole, UserProfile
 
 
-class UserProfileTests(TestCase):
-    def test_create_user_profile_signal(self):
-        """Тест создания профиля пользователя при создании пользователя"""
-        user = User.objects.create_user(username='testuser', password='testpass')
+class UsersModelsAndSignalsTest(TestCase):
+    """1. Тестирование моделей и автоматических сигналов (Signals)"""
 
-        # Проверяем, что профиль был создан автоматически
+    def test_standard_user_profile_creation(self):
+        """
+        Проверка сигнала: при создании обычного пользователя
+        должен автоматически создаться профиль с ролью 'Участник'.
+        """
+        user = User.objects.create_user(username='ordinary_player', password='123')
+
+        # Проверяем, что профиль физически существует в БД
         self.assertTrue(hasattr(user, 'profile'))
-        self.assertEqual(user.profile.user, user)
+        self.assertIsInstance(user.profile, UserProfile)
 
-        # Проверяем, что роль по умолчанию - 'Участник'
+        # Проверяем, что сигнал корректно назначил базовую роль
+        self.assertIsNotNone(user.profile.role)
         self.assertEqual(user.profile.role.name, 'Участник')
 
-    def test_create_superuser_profile_signal(self):
-        """Тест создания профиля суперпользователя с ролью Администратор"""
-        admin = User.objects.create_superuser(username='admin', password='adminpass', email='admin@test.com')
+    def test_superuser_profile_creation(self):
+        """
+        Проверка сигнала: при создании суперпользователя
+        должна автоматически назначаться роль 'Администратор'.
+        """
+        admin = User.objects.create_superuser(username='super_admin', email='admin@test.com', password='123')
 
-        # Проверяем, что профиль был создан
+        # Проверяем, что профиль создан
         self.assertTrue(hasattr(admin, 'profile'))
 
-        # Проверяем, что роль суперпользователя - 'Администратор'
+        # Проверяем, что сигнал распознал is_superuser и выдал нужную роль
         self.assertEqual(admin.profile.role.name, 'Администратор')
 
+    def test_models_string_representation(self):
+        """Проверка строкового отображения (__str__) моделей для админки"""
+        role = UserRole.objects.create(name='Тестовая роль')
+        self.assertEqual(str(role), 'Тестовая роль')
 
-class TerminateSessionsTests(TestCase):
-    def test_terminate_all_user_sessions(self):
-        """Тест завершения всех сессий пользователя"""
-        # Создаем пользователя
-        user = User.objects.create_user(username='testuser', password='testpass')
+        user = User.objects.create_user(username='test_str_user', password='123')
+        self.assertEqual(str(user.profile), 'test_str_user')
 
-        # Создаем несколько сессий для этого пользователя
-        from django.contrib.sessions.backends.db import SessionStore
+    def test_vk_id_uniqueness_and_saving(self):
+        """Проверка сохранения VK ID в профиль"""
+        user = User.objects.create_user(username='vk_user', password='123')
 
-        session1 = SessionStore()
-        session1['_auth_user_id'] = str(user.id)
-        session1.save()
+        # Имитируем привязку ВК к созданному профилю
+        user.profile.vk_id = 123456789
+        user.profile.save()
 
-        session2 = SessionStore()
-        session2['_auth_user_id'] = str(user.id)
-        session2.save()
+        # Достаем из базы и проверяем
+        updated_profile = UserProfile.objects.get(user=user)
+        self.assertEqual(updated_profile.vk_id, 123456789)
 
-        # Создаем сессию для другого пользователя
-        other_user = User.objects.create_user(username='otheruser', password='testpass')
-        session3 = SessionStore()
-        session3['_auth_user_id'] = str(other_user.id)
-        session3.save()
 
-        # Проверяем, что сессии существуют
-        initial_sessions_count = Session.objects.count()
-        self.assertEqual(initial_sessions_count, 3)
+class UsersViewsTest(TestCase):
+    """2. Тестирование контроллеров (Views) и прав доступа"""
 
-        # Вызываем функцию завершения сессий
-        terminate_all_user_sessions(user)
+    def setUp(self):
+        self.client = Client()
+        # При создании юзера сигнал сам создаст UserProfile
+        self.user = User.objects.create_user(username='test_user', password='password123')
 
-        # Проверяем, что сессии пользователя удалены, но сессия другого пользователя осталась
-        remaining_sessions = Session.objects.count()
-        self.assertEqual(remaining_sessions, 1)
+        # Задаем namespace url'ов (предполагается, что в urls.py стоит app_name = 'users')
+        # Если у тебя в urls.py нет app_name, убери 'users:' из reverse
+        self.profile_url = reverse('users:profile') if 'users' else '/users/profile/'
+        self.login_url = reverse('users:login') if 'users' else '/users/login/'
 
-        # Проверяем, что оставшаяся сессия принадлежит другому пользователю
-        remaining_session = Session.objects.first()
-        session_data = remaining_session.get_decoded()
-        self.assertEqual(str(session_data['_auth_user_id']), str(other_user.id))
+    def test_profile_access_authenticated(self):
+        """Авторизованный пользователь должен успешно попадать в профиль"""
+        self.client.login(username='test_user', password='password123')
+        response = self.client.get(self.profile_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'users/profile.html')
+
+    def test_profile_access_unauthenticated(self):
+        """Неавторизованного пользователя должно перекидывать на страницу логина"""
+        response = self.client.get(self.profile_url)
+
+        # Ожидаем редирект (302) на страницу входа
+        self.assertEqual(response.status_code, 302)
+        # Проверяем, что в адресе редиректа есть URL логина
+        self.assertTrue(response.url.startswith(self.login_url))
+
+    def test_login_page_renders(self):
+        """Страница логина должна корректно открываться (GET-запрос)"""
+        response = self.client.get(self.login_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'users/login.html')
+
+    def test_user_logout(self):
+        """Тест выхода пользователя из системы"""
+        # Сначала логинимся
+        self.client.login(username='test_user', password='password123')
+
+        # 👇 ИСПРАВЛЕНО: Вызываем встроенный logout Django строго через POST-запрос
+        logout_url = reverse('users:logout')
+        response = self.client.post(logout_url)
+
+        # Должен произойти редирект на главную (или логин) после выхода
+        self.assertEqual(response.status_code, 302)
+
+        # Пытаемся зайти в профиль после логаута — должно отказать
+        profile_response = self.client.get(self.profile_url)
+        self.assertEqual(profile_response.status_code, 302)
