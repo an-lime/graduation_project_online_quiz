@@ -50,6 +50,28 @@
 
             </section>
         </div>
+
+        {% if active_game %}
+            <div class="active-game-panel">
+                <div class="active-game-info">
+                    <span class="active-game-icon">🎲</span>
+                    <div>
+                        <h4 class="active-game-title">Ваша игра активна!</h4>
+                        <p class="active-game-code">Код: <strong>{{ active_game.game_code }}</strong></p>
+                    </div>
+                </div>
+                <div class="active-game-actions">
+                    {% if active_game.status == 'waiting' %}
+                        <a href="{% url 'game_quiz:lobby' active_game.game_code %}"
+                           class="btn-jackbox btn-primary w-100">В лобби</a>
+                    {% else %}
+                        <a href="{% url 'game_quiz:game_view' active_game.game_code %}"
+                           class="btn-jackbox btn-secondary w-100">К трансляции</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
     </main>
 {% endblock %}
 

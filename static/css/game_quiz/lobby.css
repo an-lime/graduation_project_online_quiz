@@ -187,12 +187,12 @@
     font-family: 'Courier New', Courier, monospace;
     font-size: 28px; /* Сделали крупнее и массивнее в стиле Jackbox */
     font-weight: 900;
-    color: var(--accent-pink); /* Выделяем розовым цветом из твоего брендбука */
+    color: black; /* Выделяем розовым цветом из твоего брендбука */
     letter-spacing: 4px;
-    background: #000;
+    background: #ffffff;
     padding: 2px 12px;
     border-radius: 8px;
-    border: 2px solid var(--accent-pink);
+    border: 2px solid var(--secondary);
 }
 
 .code-hint {

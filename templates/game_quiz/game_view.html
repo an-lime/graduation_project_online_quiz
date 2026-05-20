@@ -15,14 +15,13 @@
                     <div class="header-left">
                         <span class="header-icon">🎲</span>
                         <div>
-                            <h2 class="game-title">{{ game.name|default:"Название викторины" }}</h2>
-                            <p class="game-meta">Код: <strong>{{ game_code }}</strong> |
-                                Набор: {{ game.question_set.name|default:"Общие знания" }}</p>
+                            <h2 class="game-title">Викторина: {{ game.name|default:"Название викторины" }}</h2>
+                            <p class="game-meta">Код: <strong>{{ game_code }}</strong></p>
                         </div>
                     </div>
                     <div class="header-right">
                         <span class="status-badge" id="game-status">⏳ Ожидание старта</span>
-                        <a href="{% url 'game_quiz:create_game' %}" class="btn btn-exit">✕</a>
+                        <a href="{% url 'main:index' %}" class="btn btn-exit">✕</a>
                     </div>
                 </div>
 

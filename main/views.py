@@ -1,4 +1,14 @@
 from django.shortcuts import render
 
+from game_quiz.models import QuizGame
+
+
 def index(request):
-    return render(request, 'main/index.html')
+    active_game = None
+    if request.user.is_authenticated:
+        active_game = QuizGame.objects.filter(
+            owner=request.user,
+            status__in=['waiting', 'playing']
+        ).first()
+
+    return render(request, 'main/index.html', {'active_game': active_game})

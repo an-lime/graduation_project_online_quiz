@@ -28,12 +28,18 @@ async def start_command(message: Message):
 
 
 @main_labeler.message()
-async def catch_join_code(message: Message):
+async def catch_any_message(message: Message):
     current_state = await get_state(message.from_id)
 
     if current_state == UserState.WAITING_FOR_CODE.value:
         await process_game_code(message)
         return
+
+    kb = create_main_menu_keyboard()
+    await message.answer(
+        "Я не понимаю эту команду 😔\nПожалуйста, воспользуйтесь кнопками меню.",
+        keyboard=kb
+    )
 
 
 @main_labeler.raw_event(GroupEventType.MESSAGE_EVENT, dataclass=GroupTypes.MessageEvent)

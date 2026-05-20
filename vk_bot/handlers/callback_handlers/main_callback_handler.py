@@ -11,7 +11,7 @@ from vkbottle.tools import Keyboard
 
 from users.utils import terminate_all_user_sessions
 from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
-from vk_bot.utils.db import create_user_and_profile
+from vk_bot.utils.db import create_user_and_profile, get_user_stats
 from vk_bot.utils.db import get_current_user
 from vk_bot.utils.support_functions import generate_event_random_id
 
@@ -51,6 +51,8 @@ async def my_profile(event: GroupTypes.MessageEvent):
         )
     else:
 
+        games_played, total_score = await get_user_stats(user)
+
         kb = (
             Keyboard()
             .add(Callback("Сбросить пароль", {"action": "reset_password"}))
@@ -58,31 +60,42 @@ async def my_profile(event: GroupTypes.MessageEvent):
             .add(Callback("Назад", {"action": "go_main"}))
         ).get_json()
 
+        # Формируем красивый текст
+        profile_text = (
+            f"👤 Ваш профиль:\n\n"
+            f"Логин: {user.username}\n"
+            f"Имя: {user.first_name} {user.last_name}\n\n"
+            f"📊 Статистика викторин:\n"
+            f"🎮 Сыграно игр: {games_played}\n"
+            f"🏆 Набрано очков: {total_score}"
+        )
+
         if event.object.conversation_message_id:
             await event.ctx_api.messages.edit(
                 peer_id=event.object.peer_id,
                 cmid=event.object.conversation_message_id,
-                message=
-                "Ваш профиль:\n\n"
-                f"Логин: {user.username}\n",
+                message=profile_text,
                 keyboard=kb
             )
         else:
             await event.ctx_api.messages.send(
                 peer_id=event.object.peer_id,
                 random_id=generate_event_random_id(),
-                message=
-                "Ваш профиль:\n\n"
-                f"Логин: {user.username}\n",
+                message=profile_text,
                 keyboard=kb
             )
 
 
 async def create_profile(event: GroupTypes.MessageEvent):
-    username = f"vk_{event.object.user_id}"
+    vk_id = event.object.user_id
+    username = f"vk_{vk_id}"
     password = generate_random_password()
 
-    await create_user_and_profile(username, password, event)
+    user_info = await event.ctx_api.users.get(user_ids=[vk_id])
+    first_name = user_info[0].first_name
+    last_name = user_info[0].last_name
+
+    await create_user_and_profile(username, password, first_name, last_name, vk_id)
 
     await event.ctx_api.messages.send(
         peer_id=event.object.peer_id,

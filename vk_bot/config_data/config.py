@@ -14,11 +14,6 @@ class RedisConfig:
 
 
 @dataclass
-class DataBase:
-    pass
-
-
-@dataclass
 class VkBotConfig:
     vkBot: VkBot
     redis: RedisConfig
