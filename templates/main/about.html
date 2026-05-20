@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ОНЛАЙН-ВИКТОРИНА | О проекте{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/main/info_pages.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="info-page-container">
+        <div class="info-header text-center mb-5">
+            <span class="info-icon">✨</span>
+            <h1 class="info-title">О ПРОЕКТЕ</h1>
+            <p class="info-subtitle text-white">Узнайте больше о нашей интерактивной платформе</p>
+        </div>
+
+        <div class="info-card-box">
+            <h2 class="section-title">Что такое Онлайн-Викторина?</h2>
+            <p class="text-block">
+                Это современная игровая веб-платформа, созданная для проведения захватывающих квизов в реальном времени.
+                Главная фишка проекта — идеальный баланс между большим экраном трансляции и удобным геймпадом, который
+                всегда под рукой.
+            </p>
+
+            <div class="features-grid mt-4">
+                <div class="feature-item">
+                    <span class="feature-emoji">📱</span>
+                    <h3>ВК-Бот вместо геймпада</h3>
+                    <p>Игрокам не нужно скачивать сторонние приложения. Всё управление игрой и ввод ответов происходят
+                        прямо через привычный интерфейс ВКонтакте.</p>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-emoji">⚡</span>
+                    <h3>Реальное время (WebSockets)</h3>
+                    <p>Благодаря технологиям асинхронного взаимодействия и шине данных Redis, все изменения на экране
+                        трансляции и в телефонах игроков происходят мгновенно.</p>
+                </div>
+            </div>
+
+            <p class="text-block mt-4 text-center highlight-text">
+                Платформа отлично подходит для вечеринок с друзьями, корпоративных мероприятий, образовательных квизов
+                или стриминговых трансляций!
+            </p>
+        </div>
+    </div>
+{% endblock %}

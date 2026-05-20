@@ -51,14 +51,14 @@
                         <span class="info-icon">🧩</span>
                         <div class="info-content">
                             <span class="info-label">Квиз</span>
-                            <span class="info-value">{{ game.question_set.name }}</span>
+                            <span class="info-value">{{ game.name }}</span>
                         </div>
                     </div>
                     <div class="info-card">
                         <span class="info-icon">👤</span>
                         <div class="info-content">
                             <span class="info-label">Ведущий</span>
-                            <span class="info-value">{{ game.owner.username }}</span>
+                            <span class="info-value"> {{ game.owner.last_name }}</span>
                         </div>
                     </div>
                 </div>
@@ -78,10 +78,15 @@
                 <!-- Кнопки управления -->
                 {% if request.user == game.owner %}
 
-                    <div class="lobby-actions">
+                    <div class="lobby-actions" style="display: flex; flex-direction: column; gap: 15px;">
                         <button type="button" id="btn-start-game" class="btn btn-primary btn-jackbox btn-block"
                                 disabled>
                             <span class="btn-icon">🚀</span> Начать игру
+                        </button>
+
+                        <button type="button" id="btn-delete-game" class="btn btn-secondary btn-jackbox btn-block"
+                                style="border-color: #ff4d4d; color: #ff4d4d; margin-top: 0;">
+                            <span class="btn-icon">🗑️</span> Отменить и удалить игру
                         </button>
                     </div>
 

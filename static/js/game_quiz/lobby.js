@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
         lobbyData: document.getElementById('lobby-data')
     };
 
+    const btnDeleteGame = document.getElementById('btn-delete-game');
+
     // Конфигурация из data-атрибутов
     const config = {
         gameCode: els.lobbyData?.dataset.gameCode || '',
@@ -46,6 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         state.ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
+            if (data.type === 'game_aborted') {
+                alert('🛑 Ведущий отменил и удалил эту игровую комнату.');
+                window.location.href = '/';
+                return;
+            }
             handleWebSocketMessage(data);
         };
 
@@ -268,4 +275,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Обновляем состояние кнопок при загрузке
     checkStartButton();
+
+    // Обработка клика по кнопке "Отменить и удалить игру"
+    if (btnDeleteGame) {
+        btnDeleteGame.addEventListener('click', function () {
+            if (confirm('Вы уверены, что хотите полностью удалить эту игру? Все подключенные игроки будут возвращены на главную страницу.')) {
+                const csrfToken = document.querySelector('#csrf-form [name=csrfmiddlewaretoken]').value;
+                const gameCode = document.getElementById('lobby-data').dataset.gameCode;
+
+                fetch(`/quiz/lobby/${gameCode}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Ведущего после удаления перенаправляем на главную
+                            window.location.href = '/';
+                        } else {
+                            alert('Ошибка при удалении игры: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Произошла сетевая ошибка при попытке удалить игру.');
+                    });
+            }
+        });
+    }
 });

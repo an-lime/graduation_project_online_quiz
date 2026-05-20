@@ -41,8 +41,7 @@
 
                         <div class="card-info">
                             <p><strong>Код:</strong> <span class="highlight-code">{{ game.game_code }}</span></p>
-                            <p><strong>Ведущий:</strong> {{ game.owner.username }}</p>
-                            <p><strong>Набор:</strong> {{ game.question_set.name|truncatechars:20 }}</p>
+                            <p><strong>Ведущий:</strong> {{ game.owner.first_name }} {{ game.owner.last_name }}</p>
                             <p><strong>Игроков:</strong> {{ game.participants.count }} 👥</p>
                         </div>
 

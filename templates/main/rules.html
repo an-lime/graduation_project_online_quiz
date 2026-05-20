@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ОНЛАЙН-ВИКТОРИНА | Правила игры{% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/main/info_pages.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="info-page-container">
+        <div class="info-header text-center mb-5">
+            <span class="info-icon">📜</span>
+            <h1 class="info-title">ПРАВИЛА ИГРЫ</h1>
+            <p class="info-subtitle text-white">Как начать играть и побеждать</p>
+        </div>
+
+        <div class="info-card-box">
+            <div class="steps-list">
+
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Создание комнаты</h3>
+                        <p>Ведущий авторизуется на сайте, заходит в конструктор игр, выбирает подготовленный набор
+                            вопросов и создает новую игровую комнату.</p>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Подключение участников</h3>
+                        <p>На экране трансляции появляется уникальный 4-значный код комнаты. Игроки открывают диалог с
+                            нашим сообществом ВКонтакте, нажимают кнопку «Присоединиться к игре» и отправляют этот код
+                            боту.</p>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Игровой процесс</h3>
+                        <p>Ведущий запускает викторину. На большом экране появляется вопрос и варианты ответов, а ВК-бот
+                            присылает игрокам интерактивные кнопки. Время на ответ строго ограничено таймером
+                            комнаты!</p>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Подсчет очков и финал</h3>
+                        <p>Очки начисляются за правильные ответы. После финального вопроса система выведет на экран итоговую таблицу
+                            лидеров с медалями!</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

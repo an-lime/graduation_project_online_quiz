@@ -1,6 +1,8 @@
 import json
 from datetime import datetime
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -298,3 +300,33 @@ def api_answer(request):
 
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+@require_POST
+def delete_game_ajax(request, code):
+    """Удаление (отмена) игры ведущим прямо из лобби"""
+    try:
+        # Проверяем безопасность: удалить комнату может только её создатель
+        game = get_object_or_404(QuizGame, game_code=code, owner=request.user)
+
+        # Очищаем данные активной сессии из оперативной памяти Redis
+        redis_key = f"game_session:{code}"
+        redis_client.delete(redis_key)
+
+        # Рассылаем сигнал отмены всем подключенным к лобби игрокам через веб-сокеты
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'lobby_{code}',
+            {
+                'type': 'game_aborted'
+            }
+        )
+
+        # Удаляем игру из базы данных (участники и связи очистятся каскадно)
+        game.delete()
+
+        return JsonResponse({'success': True, 'message': 'Игра успешно отменена и удалена!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
