@@ -17,6 +17,8 @@ urlpatterns = [
     path('lobby/<str:code>/', views.lobby, name='lobby'),
     path('create-game-ajax/', views.create_game_ajax, name='create_game_ajax'),
 
+    path('set/<int:set_id>/delete/', views.delete_quiz_set_ajax, name='delete_quiz_set_ajax'),
+
     path('lobby/<str:code>/start/', views.start_lobby_game, name='start_lobby_game'),
     path('lobby/<str:code>/delete/', views.delete_game_ajax, name='delete_game_ajax'),
 

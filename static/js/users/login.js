@@ -4,7 +4,6 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🔑 Страница авторизации загружена');
 
     const form = document.querySelector('.auth-form');
     const usernameInput = document.getElementById('username');
@@ -102,6 +101,4 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => errorAlert.remove(), 500);
         }, 10000);
     }
-
-    console.log('✅ Все скрипты авторизации инициализированы');
 });

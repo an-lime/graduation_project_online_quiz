@@ -65,8 +65,7 @@ class UsersViewsTest(TestCase):
         # При создании юзера сигнал сам создаст UserProfile
         self.user = User.objects.create_user(username='test_user', password='password123')
 
-        # Задаем namespace url'ов (предполагается, что в urls.py стоит app_name = 'users')
-        # Если у тебя в urls.py нет app_name, убери 'users:' из reverse
+        # Задаем namespace url'ов
         self.profile_url = reverse('users:profile') if 'users' else '/users/profile/'
         self.login_url = reverse('users:login') if 'users' else '/users/login/'
 
@@ -98,11 +97,11 @@ class UsersViewsTest(TestCase):
         # Сначала логинимся
         self.client.login(username='test_user', password='password123')
 
-        # 👇 ИСПРАВЛЕНО: Вызываем встроенный logout Django строго через POST-запрос
+        # Вызываем встроенный logout Django строго через POST-запрос
         logout_url = reverse('users:logout')
         response = self.client.post(logout_url)
 
-        # Должен произойти редирект на главную (или логин) после выхода
+        # Должен произойти редирект после выхода
         self.assertEqual(response.status_code, 302)
 
         # Пытаемся зайти в профиль после логаута — должно отказать

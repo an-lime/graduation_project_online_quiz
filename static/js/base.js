@@ -4,7 +4,6 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🎲 Онлайн-Квиз: base.js загружен');
 
     // Инициализация всех tooltip'ов Bootstrap
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

@@ -15,14 +15,36 @@ from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
 from vk_bot.utils.support_functions import generate_event_random_id
 
 User = get_user_model()
+# Клиент Redis для хранения состояния игровой сессии
 redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 logger = logging.getLogger(__name__)
 
 
 class GameSession:
+    """
+    Класс управления игровой сессией викторины.
+
+    Отвечает за хранение состояния игры в Redis, управление таймером,
+    обработку ответов игроков и рассылку событий через WebSocket.
+
+    Attributes:
+        REDIS_TTL - Время жизни сессии в Redis (из настроек Django)
+        game_code - Код комнаты (приведённый к верхнему регистру)
+        redis_key - Ключ для хранения состояния в Redis
+        channel_layer - Слой каналов Django для WebSocket коммуникации
+        _timer_task - Задача асинхронного таймера
+        bot_token - Токен VK бота
+        vk - Инициализированный клиент VK API
+    """
     REDIS_TTL = getattr(settings, 'REDIS_TTL', None)
 
     def __init__(self, game_code: str):
+        """
+        Инициализация игровой сессии.
+
+        Args:
+            game_code: Уникальный код комнаты (4 символа)
+        """
         self.game_code = game_code.upper()
         self.redis_key = f"game_session:{self.game_code}"
         self.channel_layer = get_channel_layer()
@@ -31,15 +53,43 @@ class GameSession:
         self.vk = vk_api.VkApi(token=self.bot_token)
 
     def get_state(self):
+        """
+        Получение текущего состояния игры из Redis.
+
+        Returns:
+            dict: Словарь с данными состояния или None если сессия не найдена
+        """
         """Получение состояния из Redis"""
         data = redis_client.get(self.redis_key)
         return json.loads(data) if data else None
 
     def save_state(self, state):
+        """
+        Сохранение состояния игры в Redis с установленным TTL.
+
+        Args:
+            state: Словарь с данными состояния игры
+        """
         """Сохранение состояния в Redis"""
         redis_client.setex(self.redis_key, self.REDIS_TTL, json.dumps(state))
 
     async def start_game(self) -> bool:
+        """
+        Запуск новой игровой сессии.
+
+        Инициализирует состояние игры в Redis, загружает данные участников
+        и рассылает уведомление о начале игры через WebSocket.
+
+        Returns:
+            bool: True если игра успешно запущена, False иначе
+
+        Raises:
+            QuizGame.DoesNotExist: Если игра с указанным кодом не найдена
+
+        Note:
+            - Блокирует запуск если игра уже завершена (status='finished')
+            - Защищает от повторного запуска активной сессии
+        """
         """Запуск новой игры"""
         try:
             game = await sync_to_async(
@@ -118,6 +168,27 @@ class GameSession:
             return False
 
     async def next_question(self):
+        """
+        Загрузка следующего вопроса и подготовка данных для отправки.
+
+        Увеличивает индекс текущего вопроса, сбрасывает флаги ответов участников
+        и запускает таймер обратного отсчёта.
+
+        Returns:
+            dict: Словарь с данными вопроса или None если вопросы закончились
+
+        Context:
+            question_number - Номер текущего вопроса (1-based)
+            total_questions - Общее количество вопросов в игре
+            text - Текст вопроса
+            options - Список вариантов ответа
+            correct_index - Индекс правильного ответа
+            explanation - Пояснение к ответу
+            timer - Время на ответ в секундах
+
+        Note:
+            Если вопросы закончились, автоматически вызывает end_game()
+        """
         """Загружает следующий вопрос и возвращает данные для отправки"""
         logger.info(f"📥 next_question() called for {self.game_code}")
 
@@ -157,6 +228,23 @@ class GameSession:
         }
 
     def handle_answer(self, vk_id: int, option_index: int) -> dict:
+        """
+        Обработка ответа игрока на текущий вопрос.
+
+        Проверяет правильность ответа, обновляет статистику игрока
+        и рассылает событие через WebSocket. Если все игроки ответили,
+        досрочно завершает вопрос.
+
+        Args:
+            vk_id: ID пользователя VK
+            option_index: Индекс выбранного варианта ответа
+
+        Returns:
+            dict: Результат обработки {'success': bool, 'correct': bool, 'error': str}
+
+        Note:
+            Синхронный метод, вызывается из Django view
+        """
         """Обработка ответа игрока (sync-метод)"""
         state = self.get_state()
         if not state:
@@ -179,8 +267,6 @@ class GameSession:
         question = state['questions'][state['current_idx']]
         correct_index = question.get('correctIndex', -1)
         is_correct = option_index == correct_index
-
-        print(player)
 
         if is_correct:
             player['score'] += 10
@@ -302,9 +388,8 @@ class GameSession:
                 pass
 
     async def _finish_question(self, timer_ended=False):
-
-        print('Вопрос завершён')
         """Завершает вопрос: сохраняет результаты, шлёт финальные события"""
+
         state = self.get_state()
         if not state or not state.get('question_active'):
             return

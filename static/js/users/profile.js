@@ -232,7 +232,6 @@ function setupProfileSave() {
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
                 showToast('Произошла ошибка сети', 'error');
                 isSubmitting = false;
                 if (saveBtn) {

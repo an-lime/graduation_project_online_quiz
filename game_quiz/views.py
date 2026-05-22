@@ -22,6 +22,19 @@ User = get_user_model()
 
 @login_required
 def create_game(request):
+    """
+    Отображение страницы создания игры.
+
+    Предоставляет пользователю выбор между собственными наборами вопросов
+    и публичными наборами других пользователей.
+
+    Context:
+        my_sets - QuerySet наборов вопросов текущего пользователя, отсортированных по дате обновления
+        public_sets - QuerySet публичных наборов вопросов других пользователей
+
+    Template:
+        game_quiz/create_game.html
+    """
     my_sets = QuizQuestionSet.objects.filter(owner=request.user).order_by('-updated_at')
     public_sets = QuizQuestionSet.objects.filter(
         is_public=True,
@@ -35,7 +48,18 @@ def create_game(request):
 
 @login_required
 def games_list(request):
-    """Список публичных активных игр"""
+    """
+    Отображение списка публичных активных игр.
+
+    Фильтрует игры по статусу (ожидают начала или в процессе) и доступности (публичные).
+    Результаты сортируются по дате создания (новые первыми).
+
+    Context:
+        public_games - QuerySet публичных игр со связанными данными владельца и набора вопросов
+
+    Template:
+        game_quiz/games_list.html
+    """
     public_games = QuizGame.objects.filter(
         is_public=True,
         status__in=['waiting', 'playing']
@@ -48,6 +72,27 @@ def games_list(request):
 
 @login_required
 def set_editor(request, set_id=None):
+    """
+    Отображение редактора наборов вопросов.
+
+    Поддерживает два режима работы:
+    - Создание нового набора (set_id=None)
+    - Редактирование существующего набора (set_id указан)
+
+    Args:
+        request: HTTP запрос
+        set_id: Опциональный ID набора для редактирования
+
+    Context:
+        question_set - Объект набора вопросов или None при создании
+        title - Заголовок страницы
+        initial_questions_json - JSON представление вопросов для frontend
+        set_name - Название набора (пустая строка при создании)
+        is_public - Флаг публичности набора
+
+    Template:
+        game_quiz/set_editor.html
+    """
     if set_id:
         question_set = get_object_or_404(QuizQuestionSet, id=set_id, owner=request.user)
         title = "Редактирование набора"
@@ -71,8 +116,31 @@ def set_editor(request, set_id=None):
 @login_required
 @require_POST
 def save_question_set(request, set_id=None):
-    """Сохранение набора вопросов (AJAX)"""
+    """
+    Сохранение набора вопросов через AJAX запрос.
 
+    Выполняет валидацию данных и сохраняет набор вопросов в базу данных.
+    Поддерживает создание новых наборов и обновление существующих.
+
+    Args:
+        request: HTTP POST запрос с JSON данными
+        set_id: Опциональный ID набора для обновления
+
+    Request Body:
+        name - Название набора
+        questions - Список вопросов с вариантами ответов
+        is_public - Флаг публичности
+
+    Returns:
+        JsonResponse с результатом операции (success/error)
+
+    Validation:
+        - Название не должно быть пустым
+        - Минимум один вопрос в наборе
+        - Каждый вопрос должен иметь текст
+        - Минимум 2 варианта ответа на вопрос
+        - Должен быть указан правильный ответ
+    """
     try:
         data = json.loads(request.body)
         name = data.get('name', '').strip()
@@ -121,6 +189,29 @@ def save_question_set(request, set_id=None):
 
 @login_required
 def lobby(request, code):
+    """
+    Отображение лобби (комнаты ожидания) для игры.
+
+    Проверяет существование игры по коду и её статус.
+    Перенаправляет на список игр, если игра не найдена или уже началась/завершена.
+
+    Args:
+        request: HTTP запрос
+        code: Код комнаты (game_code)
+
+    Context:
+        game - Объект игры
+        game_code - Код комнаты
+        quiz_name - Название викторины
+        participants - Список участников игры
+        player_count - Количество участников
+
+    Template:
+        game_quiz/lobby.html
+
+    Redirects:
+        game_quiz:games_list - Если игра не найдена или статус не 'waiting'
+    """
     # Пытаемся найти игру по коду
     try:
         game = QuizGame.objects.get(game_code=code)
@@ -147,6 +238,31 @@ def lobby(request, code):
 @require_POST
 @transaction.atomic
 def create_game_ajax(request):
+    """
+    Создание новой игры через AJAX запрос.
+
+    Проверяет наличие активной игры у пользователя, валидирует данные
+    и создаёт новую игру с уникальным кодом комнаты.
+
+    Args:
+        request: HTTP POST запрос с JSON данными
+
+    Request Body:
+        quiz_set_id - ID набора вопросов для игры
+        game_name - Название игры
+        game_code - Код комнаты (4 символа)
+        is_public - Флаг публичности игры
+
+    Returns:
+        JsonResponse с результатом операции
+
+    Validation:
+        - У пользователя не должно быть активной игры
+        - Набор вопросов должен существовать
+        - Название игры минимум 3 символа
+        - Код комнаты ровно 4 символа
+        - Код комнаты должен быть уникальным
+    """
     try:
 
         active_game = QuizGame.objects.filter(
@@ -205,7 +321,24 @@ def create_game_ajax(request):
 @login_required
 @require_POST
 def start_lobby_game(request, code):
-    """Запуск игры из лобби (AJAX)"""
+    """
+    Запуск игры из лобби через AJAX запрос.
+
+    Инициализирует игровую сессию в Redis и переводит игру в статус 'playing'.
+    Доступно только владельцу игры.
+
+    Args:
+        request: HTTP POST запрос
+        code: Код комнаты (game_code)
+
+    Returns:
+        JsonResponse с результатом операции и URL для перенаправления
+
+    Validation:
+        - Игра должна существовать
+        - Пользователь должен быть владельцем
+        - Статус игры должен быть 'waiting'
+    """
     try:
         game = get_object_or_404(QuizGame, game_code=code, owner=request.user)
 
@@ -232,6 +365,28 @@ def start_lobby_game(request, code):
 
 @login_required
 def game_view(request, game_code):
+    """
+    Отображение игровой комнаты (основной интерфейс игры).
+
+    Обрабатывает переход игры в статус 'playing' для владельца.
+    Если пользователь не владелец и игра ещё не началась - перенаправляет в лобби.
+
+    Args:
+        request: HTTP запрос
+        game_code: Код комнаты
+
+    Context:
+        game - Объект игры
+        game_code - Код комнаты (в верхнем регистре)
+        is_host - Флаг, является ли текущий пользователь владельцем
+        participants - Список участников (исключая владельца)
+
+    Template:
+        game_quiz/game_view.html
+
+    Redirects:
+        game_quiz:lobby - Если пользователь не владелец и игра в статусе 'waiting'
+    """
     game_code = game_code.upper()
     game = get_object_or_404(QuizGame, game_code=game_code)
 
@@ -259,8 +414,26 @@ def game_view(request, game_code):
 @csrf_exempt
 def api_answer(request):
     """
-    API endpoint для получения ответов от бота
-    POST /quiz/api/answer/
+    API endpoint для получения ответов от бота VK.
+
+    Обрабатывает ответы игроков, пришедшие через VK бота, и передаёт их
+    в игровую сессию для обработки. Сохраняет время ответа в Redis.
+
+    Args:
+        request: HTTP POST запрос
+
+    Request Body:
+        game_code - Код комнаты
+        vk_id - ID пользователя VK
+        option_index - Индекс выбранного варианта ответа
+
+    Returns:
+        JsonResponse с результатом обработки ответа
+
+    Raises:
+        405 - Если метод запроса не POST
+        400 - Если отсутствуют обязательные поля
+        500 - При ошибке обработки
     """
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
@@ -290,7 +463,6 @@ def api_answer(request):
         time_diff = current_time - started_at
 
         state['answer_time'] = int(time_diff.total_seconds())
-        print(state['answer_time'])
         redis_client.setex(redis_key, getattr(settings, 'REDIS_TTL', None), json.dumps(state))
 
         session = get_game_session(game_code)
@@ -305,7 +477,27 @@ def api_answer(request):
 @login_required
 @require_POST
 def delete_game_ajax(request, code):
-    """Удаление (отмена) игры ведущим прямо из лобби"""
+    """
+    Удаление (отмена) игры ведущим через AJAX запрос.
+
+    Выполняет полную очистку игры:
+    1. Удаляет сессию из Redis
+    2. Рассылает WebSocket уведомление об отмене всем подключённым игрокам
+    3. Удаляет игру из базы данных (каскадно удаляются участники)
+
+    Args:
+        request: HTTP POST запрос
+        code: Код комнаты (game_code)
+
+    Returns:
+        JsonResponse с результатом операции
+
+    Security:
+        Только владелец игры может её удалить
+
+    WebSocket:
+        Отправляет событие 'game_aborted' в группу 'lobby_{code}'
+    """
     try:
         # Проверяем безопасность: удалить комнату может только её создатель
         game = get_object_or_404(QuizGame, game_code=code, owner=request.user)
@@ -330,3 +522,34 @@ def delete_game_ajax(request, code):
         return JsonResponse({'success': True, 'message': 'Игра успешно отменена и удалена!'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+
+@login_required
+@require_POST
+def delete_quiz_set_ajax(request, set_id):
+    """
+    Безопасное удаление пользовательского набора вопросов.
+    Предотвращает деструктуризацию данных активных игровых сессий.
+    """
+    # Гарантируем, что удалить набор может только его непосредственный автор
+    quiz_set = get_object_or_404(QuizQuestionSet, id=set_id, owner=request.user)
+
+    # Валидация: проверяем наличие связанных игровых комнат в активном состоянии
+    active_games_exist = QuizGame.objects.filter(
+        question_set=quiz_set,
+        status__in=['waiting', 'playing']
+    ).exists()
+
+    if active_games_exist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Невозможно удалить набор вопросов, так как в данный момент по нему создана или проводится активная игра.'
+        })
+
+    # Если проверочные триггеры пройдены, производим удаление записи.
+    # Архивные игры (status='finished') автоматически переведут поле question_set в NULL.
+    quiz_set.delete()
+    return JsonResponse({
+        'success': True,
+        'message': 'Набор вопросов успешно удален из вашей библиотеки.'
+    })

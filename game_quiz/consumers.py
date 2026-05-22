@@ -1,6 +1,5 @@
 import json
 import logging
-import traceback
 
 import requests
 from channels.db import database_sync_to_async
@@ -43,15 +42,14 @@ class LobbyConsumer(AsyncWebsocketConsumer):
 
         except Exception as e:
             # Ловим любую ошибку, чтобы увидеть её в консоли
-            print(f"💥 [WS] ERROR in connect: {type(e).__name__}: {e}")
-            traceback.print_exc()
+            logger.error(f"💥 [WS] ERROR in connect: {type(e).__name__}: {e}")
             try:
                 await self.close()
             except:
                 pass
 
     async def disconnect(self, close_code):
-        print(f"🔌 [WS] Disconnect: {close_code}")
+        logger.error(f"🔌 [WS] Disconnect: {close_code}")
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name

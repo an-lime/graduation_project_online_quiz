@@ -1,3 +1,9 @@
+"""
+ASGI configuration for Online_Quiz_Core project.
+
+Модуль конфигурации ASGI для поддержки WebSocket соединений и работы с Channels.
+Инициализирует Django приложение и настраивает маршрутизацию для HTTP и WebSocket запросов.
+"""
 import os
 
 import django
@@ -13,6 +19,9 @@ from game_quiz.consumers import LobbyConsumer, GameConsumer
 
 django_asgi_app = get_asgi_application()
 
+# Основной роутер приложения
+# Обрабатывает HTTP запросы через стандартное Django ASGI приложение
+# и WebSocket подключения через Consumers для лобби и игровой комнаты
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
     "websocket": AuthMiddlewareStack(

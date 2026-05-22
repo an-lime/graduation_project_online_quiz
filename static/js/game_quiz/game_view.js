@@ -39,19 +39,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws/game/${config.gameCode}/`;
 
-        console.log('🔌 Connecting to:', wsUrl);
         ws = new WebSocket(wsUrl);
 
-        ws.onopen = () => console.log('✅ Game WS connected');
         ws.onmessage = (e) => {
             const data = JSON.parse(e.data);
             handleGameMessage(data);
         };
-        ws.onclose = () => console.log('❌ Game WS disconnected');
     }
 
     function handleGameMessage(data) {
-        console.log('📩 Received:', data.type);
         switch (data.type) {
             case 'current_state':
                 restoreGameState(data.state);
@@ -113,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderAnswerOptions(options) {
         if (!options || options.length === 0) {
-            console.warn('⚠️ No options to render');
             return;
         }
 
@@ -121,7 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (oldContainer) oldContainer.remove();
 
         if (!els.qArea) {
-            console.error('❌ qArea not found');
             return;
         }
 
@@ -175,7 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderQuestionEnd(data) {
-        console.log('🏁 Question ended');
 
         const correctIdx = data.correct_index !== undefined ? data.correct_index : currentCorrectIndex;
         const explanation = data.explanation || currentExplanation;
@@ -302,7 +295,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleGameStarted() {
-        console.log('🟢 Game started');
         if (els.statusBadge) {
             els.statusBadge.textContent = '🟢 Игра идёт';
             els.statusBadge.style.background = '#e0ffe8';
@@ -361,7 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderGameResults(data) {
-        console.log('🏆 Отображение результатов игры', data);
         const modal = document.getElementById('results-modal');
         const list = document.getElementById('results-list');
 
@@ -410,7 +401,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Функция для отображения модалки при преждевременном завершении
     function renderGameAborted() {
-        console.log('🛑 Игра отменена: все игроки вышли');
         const modal = document.getElementById('results-modal');
         const list = document.getElementById('results-list');
         const headerObj = document.querySelector('.results-header h2');

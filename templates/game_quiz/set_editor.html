@@ -25,6 +25,15 @@
                             <button type="button" id="btn-save-set" class="btn btn-primary btn-jackbox btn-save-set">
                                 <span class="btn-icon">💾</span> Сохранить набор
                             </button>
+
+                            {% if question_set.id %}
+                                <button type="button" id="btn-delete-set" class="btn-jackbox btn-delete-set"
+                                        style="background: linear-gradient(135deg, #ff4d4d 0%, #cc0000 100%); border-color: #990000; color: white; margin-left: 15px; padding: 16px;"
+                                        data-set-id="{{ question_set.id }}">
+                                    <span class="btn-icon">🗑️</span> Удалить набор
+                                </button>
+                            {% endif %}
+
                         </div>
 
                         <div class="visibility-segmented">

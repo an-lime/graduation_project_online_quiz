@@ -1,3 +1,10 @@
+"""
+Модуль представлений (views) приложения пользователей.
+
+Содержит функции для обработки запросов, связанных с аутентификацией,
+управлением профилем пользователя, сменой пароля и верификацией email.
+"""
+
 import json
 from datetime import datetime, timedelta
 
@@ -22,6 +29,19 @@ User = get_user_model()
 
 
 def login_view(request):
+    """
+    Обработка входа пользователя в систему.
+
+    Принимает POST-запрос с username и password, аутентифицирует пользователя
+    и создает сессию. При успешном входе перенаправляет на главную страницу
+    или на URL, указанный в параметре 'next'.
+
+    Args:
+        request: Объект HTTP-запроса.
+
+    Returns:
+        Rendered шаблон страницы входа или редирект после успешной аутентификации.
+    """
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -40,6 +60,20 @@ def login_view(request):
 
 @login_required
 def profile(request):
+    """
+    Отображение страницы профиля пользователя.
+
+    Показывает информацию о пользователе, историю игр и статистику:
+    - Общий счет за все игры
+    - Количество сыгранных игр
+    - Количество побед (занятых первых мест)
+
+    Args:
+        request: Объект HTTP-запроса.
+
+    Returns:
+        Rendered шаблон профиля пользователя с данными статистики.
+    """
     user = request.user
 
     # Получаем историю игр пользователя, сортируем по дате (сначала новые)
@@ -65,6 +99,25 @@ def profile(request):
 @login_required
 @transaction.atomic
 def profile_edit(request):
+    """
+    Редактирование профиля пользователя.
+
+    Обрабатывает POST-запрос на обновление данных профиля:
+    username, email, first_name, last_name.
+    Перед сохранением выполняет валидацию:
+    - Проверка длины логина (минимум 3 символа)
+    - Проверка уникальности логина
+    - Проверка подтверждения email (через сессию)
+    - Проверка уникальности email
+
+    Поддерживает как обычные HTTP-запросы, так и AJAX (возвращает JSON).
+
+    Args:
+        request: Объект HTTP-запроса.
+
+    Returns:
+        Redirect на страницу профиля или JSON-ответ для AJAX-запросов.
+    """
     if request.method != "POST":
         return redirect('users:profile')
 
@@ -142,6 +195,24 @@ def profile_edit(request):
 @login_required
 @transaction.atomic
 def password_change(request):
+    """
+    Смена пароля пользователя.
+
+    Обрабатывает POST-запрос на изменение пароля. Выполняет проверки:
+    - Кулдаун 5 минут между сбросами пароля
+    - Проверка текущего пароля
+    - Совпадение новых паролей
+    - Минимальная длина пароля (8 символов)
+
+    После успешной смены пароля завершает все другие сессии пользователя
+    и обновляет хэш сессии для безопасности.
+
+    Args:
+        request: Объект HTTP-запроса.
+
+    Returns:
+        Redirect на страницу профиля с сообщением о результате.
+    """
     if request.method != 'POST':
         return redirect('users:profile')
 
@@ -182,7 +253,19 @@ def password_change(request):
 @login_required
 @require_POST
 def send_verify_code(request):
-    """Генерирует 6-значный код и отправляет его на Email"""
+    """
+    Отправка кода верификации на email пользователя.
+
+    Генерирует 6-значный код подтверждения и отправляет его на указанный email.
+    Реализует кулдаун 60 секунд между отправками кодов.
+    Код сохраняется в сессии вместе с timestamp отправки.
+
+    Args:
+        request: Объект HTTP-запроса (ожидается JSON с полем 'email').
+
+    Returns:
+        JSON-ответ с результатом операции (success/error).
+    """
 
     # Проверка кулдауна (60 секунд) через таймстампы
     last_send = request.session.get('last_code_send_time')
@@ -194,7 +277,6 @@ def send_verify_code(request):
         email = data.get('email')
 
         if not email:
-            # Добавил 'success': False для корректной обработки на фронтенде
             return JsonResponse({'success': False, 'error': 'Email не указан'})
 
         code = generate_verification_code()
@@ -226,7 +308,19 @@ def send_verify_code(request):
 @login_required
 @require_POST
 def verify_email_code(request):
-    """Проверяет введенный код"""
+    """
+    Проверка кода верификации email.
+
+    Сравнивает введенный пользователем код с кодом, сохраненным в сессии.
+    Проверяет время жизни кода (10 минут).
+    При успешной проверке устанавливает флаги верификации в сессии.
+
+    Args:
+        request: Объект HTTP-запроса (ожидается JSON с полем 'code').
+
+    Returns:
+        JSON-ответ с результатом проверки (success/error).
+    """
     try:
         data = json.loads(request.body)
         user_code = data.get('code')
@@ -264,7 +358,18 @@ def verify_email_code(request):
 
 
 def api_get_user_by_vk(request, vk_id: int):
-    """API для получения username по VK ID"""
+    """
+    API endpoint для получения username пользователя по VK ID.
+
+    Используется ботом ВКонтакте для связи VK-аккаунта с пользователем системы.
+
+    Args:
+        request: Объект HTTP-запроса.
+        vk_id: Идентификатор пользователя ВКонтакте.
+
+    Returns:
+        JSON-ответ с username или ошибкой 404, если пользователь не найден.
+    """
     try:
         user = User.objects.get(profile__vk_id=vk_id)
         return JsonResponse({'username': user.username})

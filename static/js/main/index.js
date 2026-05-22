@@ -4,7 +4,6 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🎲 Главная страница загружена');
 
     const roleButtons = document.querySelectorAll('.role-btn');
 

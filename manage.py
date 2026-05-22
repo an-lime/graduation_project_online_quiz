@@ -1,10 +1,24 @@
 #!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
+"""
+Django's command-line utility for administrative tasks.
+
+Этот модуль предоставляет точку входа для выполнения команд управления Django,
+таких как запуск сервера разработки, применение миграций и других административных задач.
+"""
 import os
 import sys
 
 
 def main():
+    """
+    Основная функция запуска Django управления.
+
+    Устанавливает переменную окружения DJANGO_SETTINGS_MODULE и инициализирует
+    систему управления командами Django.
+
+    Raises:
+        ImportError: Если Django не установлен или недоступен в PYTHONPATH.
+    """
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Online_Quiz_Core.settings')
     try:
         from django.core.management import execute_from_command_line

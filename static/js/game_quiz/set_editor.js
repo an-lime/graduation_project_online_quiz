@@ -341,7 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
                     if (typeof showToast === 'function') {
                         showToast('Произошла ошибка сети', 'error');
                     }
@@ -362,13 +361,68 @@ document.addEventListener('DOMContentLoaded', () => {
             if (Array.isArray(loadedQuestions) && loadedQuestions.length > 0) {
                 questions = loadedQuestions;
                 currentEditIndex = -1;
-                console.log(`✅ Загружено ${questions.length} вопросов из набора`);
             }
         } catch (e) {
-            console.error('Ошибка при загрузке вопросов:', e);
-            console.log('Сырые данные:', initialJsonInput.value);
         }
     }
 
     renderList();
+
+    // ==========================================
+    // ЛОГИКА УДАЛЕНИЯ НАБОРА ВОПРОСОВ
+    // ==========================================
+    const btnDeleteSet = document.getElementById('btn-delete-set');
+
+    if (btnDeleteSet) {
+        btnDeleteSet.addEventListener('click', function () {
+            // Извлекаем ID набора из data-атрибута кнопки
+            const setId = this.dataset.setId;
+
+            // Запрашиваем подтверждение у пользователя (защита от случайного клика)
+            if (confirm('Вы уверены, что хотите навсегда удалить этот набор вопросов? Это действие необратимо.')) {
+
+                // Ищем CSRF-токен на странице
+                const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+                if (!csrfInput) {
+                    alert('Ошибка: CSRF токен не найден на странице.');
+                    return;
+                }
+                const csrfToken = csrfInput.value;
+
+                // Блокируем кнопку на время запроса, чтобы не было двойных кликов
+                const originalText = this.innerHTML;
+                this.innerHTML = '⏳ Удаление...';
+                this.disabled = true;
+
+                // Отправляем AJAX-запрос на сервер
+                fetch(`/quiz/set/${setId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Показываем сообщение об успехе
+                            alert('✅ ' + data.message);
+                            // Перенаправляем пользователя на страницу со списком наборов/игр
+                            window.location.href = '/quiz/';
+                        } else {
+                            // Если сработала серверная защита (например, идет активная игра)
+                            alert('🛑 Отказ сервера: ' + data.error);
+                            // Разблокируем кнопку
+                            btnDeleteSet.innerHTML = originalText;
+                            btnDeleteSet.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        alert('Произошла сетевая ошибка при попытке удалить набор.');
+                        btnDeleteSet.innerHTML = originalText;
+                        btnDeleteSet.disabled = false;
+                    });
+            }
+        });
+    }
 });

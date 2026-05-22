@@ -38,11 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws/lobby/${config.gameCode}/`;
 
-        console.log('🔌 Connecting to WebSocket:', wsUrl);
         state.ws = new WebSocket(wsUrl);
 
         state.ws.onopen = () => {
-            console.log('✅ WebSocket connected');
             state.reconnectAttempts = 0;
         };
 
@@ -57,12 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         state.ws.onclose = () => {
-            console.log('❌ WebSocket disconnected');
             // Попытка переподключения
             if (state.reconnectAttempts < state.maxReconnectAttempts) {
                 state.reconnectAttempts++;
                 const delay = Math.min(2000 * state.reconnectAttempts, 10000);
-                console.log(`🔄 Reconnecting... (${state.reconnectAttempts}/${state.maxReconnectAttempts}) in ${delay}ms`);
                 setTimeout(() => connectWebSocket(), delay);
             } else {
                 showToast('⚠️ Потеряно соединение с сервером', 'warning');
@@ -70,13 +66,10 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         state.ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
         };
     }
 
     function handleWebSocketMessage(data) {
-
-        console.log('📩 Received:', data.type);
 
         switch (data.type) {
             case 'participants_list':
@@ -131,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleGoGamePage() {
-        console.log('🚀 Game starting!');
         showToast('🚀 Игра начинается! Переход в комнату...', 'success');
         state.gameStarted = true;
         setTimeout(() => {
@@ -237,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.success && data.redirect_url) {
 
                     if (state.ws && state.ws.readyState === WebSocket.OPEN) {
-                        console.log('send go_game_page')
                         state.ws.send(JSON.stringify({action: 'go_game_page'}));
                         els.btnStart.disabled = true;
                     }
@@ -248,7 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     els.btnStart.innerHTML = '<span class="btn-icon">🚀</span> Начать игру';
                 }
             } catch (error) {
-                console.error('Network error:', error);
                 showToast('Произошла ошибка сети', 'error');
                 els.btnStart.disabled = false;
                 els.btnStart.innerHTML = '<span class="btn-icon">🚀</span> Начать игру';
@@ -300,7 +290,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
                         alert('Произошла сетевая ошибка при попытке удалить игру.');
                     });
             }

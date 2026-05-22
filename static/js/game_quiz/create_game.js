@@ -128,8 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }, 1000);
                     } else {
                         if (typeof showToast === 'function') {
-                            console.log(data.error)
-                            showToast(data.error || 'Ошибка создания игры', 'error');
+                            showToast('Ошибка создания игры', 'error');
                         }
                         // Разблокировка кнопки при ошибке
                         if (submitBtn) {
@@ -139,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
                     if (typeof showToast === 'function') {
                         showToast('Произошла ошибка сети', 'error');
                     }
