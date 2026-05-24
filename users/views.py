@@ -53,7 +53,6 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            messages.success(request, 'Вы успешно вошли')
             next_url = request.GET.get('next', 'main:index')
             return redirect(next_url)
         else:
