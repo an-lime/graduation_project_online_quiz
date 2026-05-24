@@ -125,11 +125,16 @@ async def process_game_code(message: Message):
     await sync_to_async(GameParticipant.objects.create)(game=game, player=user)
 
     channel_layer = get_channel_layer()
+
+    display_name = f"{user.first_name} {user.last_name}".strip()
+    if not display_name:
+        display_name = user.username
+
     await channel_layer.group_send(
         f'lobby_{game.game_code}',
         {
             'type': 'participant_joined',
-            'username': user.username,
+            'username': display_name,
             'is_host': False
         }
     )
@@ -147,7 +152,6 @@ async def process_game_code(message: Message):
         f"🎮 Название: {game.name}\n"
         f"👤 Ведущий: {game.owner.first_name} {game.owner.last_name}\n"
         f"👥 Участников: {participants_count}\n"
-        f"🧩 Набор: {game.question_set.name}\n\n"
         "Ожидайте начала игры. Нажмите 'Покинуть лобби', если передумали.",
         keyboard=kb
     )
@@ -207,8 +211,12 @@ async def confirm_leave_lobby(event: GroupTypes.MessageEvent, payload: dict):
         return
 
     was_removed = False
-    username = user.username
     game_aborted = False
+
+    first_name = user.first_name.strip() if user.first_name else ""
+    last_name = user.last_name.strip() if user.last_name else ""
+    full_name = f"{first_name} {last_name}".strip()
+    display_name = full_name if full_name else user.username
 
     try:
         # 1. Проверяем и удаляем участника из БД Django
@@ -219,7 +227,6 @@ async def confirm_leave_lobby(event: GroupTypes.MessageEvent, payload: dict):
             )
         )()
         game = participant.game
-        username = participant.player.username
 
         # Удаляем игрока
         await sync_to_async(participant.delete)()
@@ -257,11 +264,11 @@ async def confirm_leave_lobby(event: GroupTypes.MessageEvent, payload: dict):
         if was_removed:
             await channel_layer.group_send(
                 f'lobby_{game_code}',
-                {'type': 'participant_left', 'username': username, 'vk_id': user_id}
+                {'type': 'participant_left', 'username': display_name, 'vk_id': user_id}
             )
             await channel_layer.group_send(
                 f'game_{game_code}',
-                {'type': 'participant_left', 'username': username, 'vk_id': user_id}
+                {'type': 'participant_left', 'username': display_name, 'vk_id': user_id}
             )
 
     # 4. Отправляем меню пользователю

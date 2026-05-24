@@ -55,10 +55,10 @@
                         </div>
                     </div>
                     <div class="info-card">
-                        <span class="info-icon">👤</span>
+                        <span class="info-icon">👑</span>
                         <div class="info-content">
                             <span class="info-label">Ведущий</span>
-                            <span class="info-value"> {{ game.owner.last_name }}</span>
+                            <span class="info-value">{{ game.owner.first_name }} {{ game.owner.last_name }}</span>
                         </div>
                     </div>
                 </div>
@@ -68,9 +68,9 @@
                     <h3 class="section-title">🎯 Участники</h3>
                     <ul id="player-list" class="player-list">
                         <li class="player-item">
-                            <span class="player-avatar">👑</span>
-                            <span class="player-name">{{ game.owner.username }}</span>
-                            <span class="player-role">Ведущий</span>
+                            <span class="player-avatar">👤</span>
+                            <span class="player-name">{{ game.owner.first_name }} {{ game.owner.last_name }}</span>
+                            <span class="player-role">Участник</span>
                         </li>
                     </ul>
                 </div>

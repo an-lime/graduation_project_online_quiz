@@ -1,6 +1,8 @@
 import json
 from datetime import datetime
 
+import requests
+import vk_api
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.conf import settings
@@ -16,6 +18,9 @@ from django.views.decorators.http import require_POST
 from game_quiz.models import QuizGame, GameParticipant
 from game_quiz.models import QuizQuestionSet
 from game_quiz.services.game_session import get_game_session, redis_client
+from vk_bot.keyboards import main_keyboard
+from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
+from vk_bot.utils.support_functions import generate_event_random_id
 
 User = get_user_model()
 
@@ -502,6 +507,39 @@ def delete_game_ajax(request, code):
         # Проверяем безопасность: удалить комнату может только её создатель
         game = get_object_or_404(QuizGame, game_code=code, owner=request.user)
 
+        participants = list(game.participants.exclude(id=request.user.id).select_related('profile'))
+        game_name = game.name
+
+        bot_token = getattr(settings, 'VK_BOT_TOKEN', None)
+        if bot_token:
+            for user in participants:
+                vk_id = None
+                if hasattr(user, 'profile'):
+                    vk_id = user.profile.vk_id
+
+                if vk_id:
+                    try:
+                        vk = vk_api.VkApi(token=bot_token)
+                        vk.method("messages.send", {
+                            "peer_id": vk_id,
+                            "random_id": generate_event_random_id(),
+                            "message": f"🚫 Игра «{game_name}» была досрочно отменена ведущим.",
+                            "keyboard": create_main_menu_keyboard()
+                        })
+
+                        requests.post(
+                            'https://api.vk.com/method/messages.send',
+                            data={
+                                'peer_id': vk_id,
+                                'message': f"🚫 Игра «{game_name}» была досрочно отменена ведущим.",
+                                'random_id': 0,
+                                'access_token': bot_token,
+                                'v': '5.199'
+                            }
+                        )
+                    except Exception as e:
+                        pass
+
         # Очищаем данные активной сессии из оперативной памяти Redis
         redis_key = f"game_session:{code}"
         redis_client.delete(redis_key)
@@ -516,7 +554,7 @@ def delete_game_ajax(request, code):
             }
         )
 
-        # Удаляем игру из базы данных (участники и связи очистятся каскадно)
+        # Удаляем игру из базы данных
         game.delete()
 
         return JsonResponse({'success': True, 'message': 'Игра успешно отменена и удалена!'})

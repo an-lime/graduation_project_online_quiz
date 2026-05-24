@@ -7,8 +7,10 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
 
 from game_quiz.models import QuizGame, GameParticipant, GameResult
-from game_quiz.services.game_session import get_game_session
+from game_quiz.services.game_session import get_game_session, redis_client
 from game_quiz.services.question_sender import VKQuestionSender
+from vk_bot.keyboards.main_keyboard import create_main_menu_keyboard
+from vk_bot.utils.support_functions import generate_event_random_id
 
 logger = logging.getLogger(__name__)
 
@@ -145,23 +147,33 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         participants = GameParticipant.objects.filter(
             game__game_code=self.game_code
         ).select_related('player', 'game__owner')
-        return [
-            {'username': p.player.username, 'is_host': p.player.id == p.game.owner.id}
-            for p in participants
-        ]
+
+        result = []
+        for p in participants:
+            first_name = p.player.first_name.strip() if p.player.first_name else ""
+            last_name = p.player.last_name.strip() if p.player.last_name else ""
+            full_name = f"{first_name} {last_name}".strip()
+
+            display_name = full_name if full_name else p.player.username
+
+            result.append({
+                'username': display_name,
+                'is_host': p.player.id == p.game.owner.id
+            })
+        return result
 
     # === Обработчики событий ===
     async def participant_joined(self, event):
         await self.send(text_data=json.dumps({
             'type': 'participant_joined',
             'username': event['username'],
-            'is_host': event.get('is_host', False)
+            'is_host': event.get('is_host', False),
         }))
 
     async def participant_left(self, event):
         await self.send(text_data=json.dumps({
             'type': 'participant_left',
-            'username': event['username']
+            'username': event['username'],
         }))
 
     async def go_game_page(self, event):
@@ -171,7 +183,8 @@ class LobbyConsumer(AsyncWebsocketConsumer):
         }))
 
     async def game_aborted(self, event):
-        """Ловим событие отмены игры и пересылаем на фронт лобби"""
+        """Ловим событие отмены игры"""
+
         await self.send(text_data=json.dumps(event))
 
 
@@ -267,10 +280,6 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({'type': 'game_started'}))
 
     async def participant_left(self, event):
-        await self.send(text_data=json.dumps(event))
-
-    async def game_aborted(self, event):
-        # Пересылает сигнал об экстренном завершении игры на frontend
         await self.send(text_data=json.dumps(event))
 
     async def question_update(self, event):

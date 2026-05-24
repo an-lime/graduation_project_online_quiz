@@ -43,8 +43,12 @@ def login_view(request):
         Rendered шаблон страницы входа или редирект после успешной аутентификации.
     """
     if request.method == "POST":
-        username = request.POST.get('username')
+        username_or_email = request.POST.get('username')
         password = request.POST.get('password')
+
+        user_obj = User.objects.filter(email=username_or_email).first()
+        username = user_obj.username if user_obj else username_or_email
+
         user = authenticate(request, username=username, password=password)
 
         if user is not None:

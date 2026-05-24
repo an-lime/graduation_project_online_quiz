@@ -79,7 +79,7 @@
                             <div class="info-row"><span class="info-label">📅 Регистрация:</span><span
                                     class="info-value">{{ user.date_joined|date:"d E Y" }}</span></div>
                             <div class="info-row"><span class="info-label">🎮 Всего игр:</span><span
-                                    class="info-value">{{ total_games|default:0 }}</span></div>
+                                    class="info-value">{{ stats.games_played|default:0 }}</span></div>
                         </div>
                     </div>
 

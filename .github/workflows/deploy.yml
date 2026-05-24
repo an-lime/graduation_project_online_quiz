@@ -1,0 +1,31 @@
+name: Auto Deploy to Timeweb
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Подключение к серверу и обновление кода
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: root
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            cd /opt/graduation_project_online_quiz
+            
+            git fetch origin
+            git reset --hard origin/main
+            
+            source .venv/bin/activate
+            pip install -r requirements.txt
+            
+            python manage.py migrate
+            python manage.py collectstatic --noinput
+            
+            systemctl restart daphne
+            systemctl restart vk_bot

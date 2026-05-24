@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             if (data.type === 'game_aborted') {
-                alert('🛑 Ведущий отменил и удалил эту игровую комнату.');
+                alert('🛑 Ведущий удалил эту игровую комнату или все участники вышли.');
                 window.location.href = '/';
                 return;
             }
@@ -64,9 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast('⚠️ Потеряно соединение с сервером', 'warning');
             }
         };
-
-        state.ws.onerror = (error) => {
-        };
     }
 
     function handleWebSocketMessage(data) {
@@ -78,11 +75,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
 
             case 'participant_joined':
-                handleParticipantJoined(data.username, data.is_host);
+                handleParticipantJoined(data);
                 break;
 
             case 'participant_left':
-                handleParticipantLeft(data.username);
+                handleParticipantLeft(data);
                 break;
 
             case 'go_game_page':
@@ -97,29 +94,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         participants.forEach(p => {
             state.players.add(p.username);
-            addPlayerToList(p.username, p.is_host, false); // false = без анимации
+            addPlayerToList(p, false); // false = без анимации
         });
 
         updatePlayerCount();
         checkStartButton();
     }
 
-    function handleParticipantJoined(username, isHost) {
-        if (!state.players.has(username)) {
-            state.players.add(username);
-            addPlayerToList(username, isHost, true); // true = с анимацией
+    function handleParticipantJoined(data) {
+        if (!state.players.has(data.username)) {
+            state.players.add(data.username);
+            addPlayerToList(data, true);
             updatePlayerCount();
-            showToast(`🎉 ${username} присоединился!`, 'success');
+            showToast(`🎉 ${data.username} присоединился!`, 'success');
             checkStartButton();
         }
     }
 
-    function handleParticipantLeft(username) {
-        if (state.players.has(username)) {
-            state.players.delete(username);
-            removePlayerFromList(username);
+    function handleParticipantLeft(data) {
+        console.log(data)
+        if (state.players.has(data.username)) {
+            state.players.delete(data.username);
+            removePlayerFromList(data.username);
             updatePlayerCount();
-            showToast(`${username} покинул лобби`, 'info');
+            showToast(`${data.username} покинул лобби`, 'info');
         }
     }
 
@@ -134,17 +132,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================
     // 2. УПРАВЛЕНИЕ СПИСКОМ ИГРОКОВ
     // =========================================
-    function addPlayerToList(username, isHost, animate = true) {
+    function addPlayerToList(data, animate = true) {
         const li = document.createElement('li');
         li.className = `player-item ${animate ? 'new' : ''}`;
-        li.dataset.username = username;
+        li.dataset.username = data.username;
 
-        const avatar = isHost ? '👑' : '🎮';
-        const role = isHost ? '<span class="player-role">Ведущий</span>' : '';
+        const avatar = data.isHost ? '👑' : '🎮';
+        const role = data.isHost ? '<span class="player-role">Ведущий</span>' : '';
 
         li.innerHTML = `
             <span class="player-avatar">${avatar}</span>
-            <span class="player-name">${username}</span>
+            <span class="player-name">${data.username}</span>
             ${role}
         `;
 
@@ -289,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             alert('Ошибка при удалении игры: ' + data.error);
                         }
                     })
-                    .catch(error => {
+                    .catch(_ => {
                         alert('Произошла сетевая ошибка при попытке удалить игру.');
                     });
             }

@@ -490,7 +490,7 @@ class GameSession:
                             "peer_id": player['vk_id'],
                             "random_id": generate_event_random_id(),
                             "message": msg,
-                            "keyboard": main_menu_kb  # <-- ПРИКРЕПЛЯЕМ КЛАВИАТУРУ
+                            "keyboard": main_menu_kb
                         })
                     except Exception as e:
                         logger.error(f"Ошибка отправки результата игроку {player['vk_id']}: {e}")

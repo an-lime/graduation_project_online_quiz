@@ -21,9 +21,11 @@ env = Env()
 env.read_env(BASE_DIR / ".env")
 
 SECRET_KEY = env.str("SECRET_KEY_DJANGO")
-DEBUG = True
+DEBUG = env.bool("DEBUG", default=True)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=['localhost', '127.0.0.1', '0.0.0.0'])
 
 # Application definition
 INSTALLED_APPS = [
@@ -184,7 +186,7 @@ JAZZMIN_SETTINGS = {
     "search_model": ["auth.User", "game_quiz.QuizGame"],
     "show_ui_builder": False,
     "topmenu_links": [
-        {"name": "Главная сайта",  "url": "/", "permissions": ["auth.view_user"]},
+        {"name": "Главная сайта", "url": "/", "permissions": ["auth.view_user"]},
     ],
     "icons": {
         "auth.User": "fas fa-users",

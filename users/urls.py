@@ -15,11 +15,7 @@ app_name = 'users'
 
 urlpatterns = [
     # Страница входа с использованием встроенного представления Django
-    path('login/', auth_views.LoginView.as_view(
-        template_name='users/login.html',
-        redirect_authenticated_user=True,
-        extra_context={'next': ''}
-    ), name='login'),
+    path('login/', user_views.login_view, name='login'),
 
     # Выход из системы с перенаправлением на главную страницу
     path('logout/', auth_views.LogoutView.as_view(
