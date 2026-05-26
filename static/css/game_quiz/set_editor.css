@@ -226,6 +226,7 @@
     border: 3px solid #eee;
     display: flex;
     flex-direction: column;
+    width: 500px;
 }
 
 .list-header {
@@ -429,19 +430,89 @@
 
 /* Адаптивность */
 @media (max-width: 768px) {
-    .segmented-control {
-        width: 100%;
+    .set-editor-card,
+    .set-editor-card * {
+        box-sizing: border-box !important;
+        max-width: 100% !important;
     }
 
-    .segment-btn {
-        padding: 8px 12px;
-        font-size: 0.8rem;
+    body, html {
+        overflow-x: hidden !important;
+    }
+
+    .set-editor-card {
+        width: 100% !important;
+        padding: 15px !important;
+        margin: 10px 0 !important;
+        border-width: 2px !important;
+        border-radius: 15px !important;
+        overflow-x: hidden !important;
+    }
+
+    .questions-layout {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 20px !important;
+    }
+
+    .questions-list-panel,
+    .question-edit-panel {
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+    }
+
+    .answer-item,
+    .time-score-group,
+    .question-row {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        gap: 8px !important;
+        padding: 10px !important;
+        background: rgba(0, 0, 0, 0.02) !important;
+        border-radius: 10px !important;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select,
+    .form-control {
+        width: 100% !important;
+        min-width: 0 !important;
+        flex: none !important;
+        font-size: 16px !important;
+    }
+
+    .editor-header {
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    .btn-back-editor,
+    .btn-save-set,
+    .add-q-btn,
+    .correct-toggle {
+        width: 100% !important;
+        text-align: center !important;
+        justify-content: center !important;
     }
 }
 
-/* --- Кнопка удаления вопроса в списке --- */
+@media (max-width: 480px) {
+    .set-editor-card h1,
+    .set-editor-card h2 {
+        font-size: 1.4rem !important;
+        text-align: center;
+    }
+}
+
 .q-item {
-    position: relative; /* Для позиционирования, если понадобится */
+    position: relative;
 }
 
 .q-item-text {
@@ -450,7 +521,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: calc(100% - 40px); /* Оставляем место под кнопку */
+    max-width: calc(100% - 40px);
 }
 
 .btn-delete-q {
