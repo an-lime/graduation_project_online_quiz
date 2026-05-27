@@ -232,12 +232,12 @@ async def confirm_leave_lobby(event: GroupTypes.MessageEvent, payload: dict):
         await sync_to_async(participant.delete)()
         was_removed = True
 
-        # ПРОБЛЕМА РЕШЕНА: Проверяем, остались ли еще обычные игроки (кроме создателя) в БД
+        # Проверяем, остались ли еще обычные игроки (кроме создателя) в БД
         remaining_players = await sync_to_async(
             lambda: GameParticipant.objects.filter(game=game).exists()
         )()
 
-        if not remaining_players:
+        if not remaining_players and game.status != 'waiting':
             # Если это был последний игрок, экстренно удаляем игру из БД до старта!
             await sync_to_async(game.delete)()
             game_aborted = True
@@ -250,7 +250,7 @@ async def confirm_leave_lobby(event: GroupTypes.MessageEvent, payload: dict):
     channel_layer = get_channel_layer()
 
     if game_aborted:
-        # Если игра отменена на этапе БД, рассылаем сигнал смерти игры и чистим Redis
+        # Если игра отменена на этапе БД, рассылаем сигнал удаления игры и чистим Redis
         await session._abort_game()
         # Дублируем сигнал в лобби на всякий случай
         await channel_layer.group_send(f'lobby_{game_code}', {'type': 'game_aborted'})

@@ -112,12 +112,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleParticipantLeft(data) {
-        console.log(data)
         if (state.players.has(data.username)) {
             state.players.delete(data.username);
             removePlayerFromList(data.username);
             updatePlayerCount();
             showToast(`${data.username} покинул лобби`, 'info');
+            checkStartButton()
         }
     }
 

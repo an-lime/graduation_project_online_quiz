@@ -226,7 +226,10 @@ def lobby(request, code):
 
     # Запрещаем заходить в лобби, если игра уже началась или завершена
     if game.status != 'waiting':
-        return redirect('game_quiz:games_list')
+        if game.status == 'playing':
+            return redirect('game_quiz:game_view', game_code=code)
+        else:
+            return redirect('game_quiz:games_list')
 
     participants = game.participants.all()
 

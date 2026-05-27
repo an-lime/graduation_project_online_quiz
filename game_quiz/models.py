@@ -96,15 +96,6 @@ class QuizQuestionSet(models.Model):
             self.quiz_set_content.pop(index)
             self.save()
 
-    def shuffle_questions(self):
-        """
-        Перемешивание вопросов в наборе случайным образом.
-
-        Использует алгоритм Fisher-Yates через random.shuffle().
-        """
-        random.shuffle(self.quiz_set_content)
-        self.save()
-
 
 class QuizGame(models.Model):
     """
@@ -150,7 +141,7 @@ class QuizGame(models.Model):
         through='game_quiz.GameParticipant')
     is_public = models.BooleanField("Доступность игры", default=False)
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True)
     started_at = models.DateTimeField(null=True, blank=True)
     finished_at = models.DateTimeField(null=True, blank=True)
 
@@ -193,8 +184,8 @@ class GameResult(models.Model):
         score: Количество набранных очков.
         rank: Занятое место в игре (1 - первое место и т.д.).
     """
-    game = models.ForeignKey(QuizGame, on_delete=models.CASCADE, related_name='results')
-    player = models.ForeignKey(User, on_delete=models.CASCADE, related_name='game_results')
+    game = models.ForeignKey(QuizGame, on_delete=models.CASCADE, related_name='results', verbose_name='Викторина')
+    player = models.ForeignKey(User, on_delete=models.CASCADE, related_name='game_results', verbose_name='Участник')
 
     score = models.PositiveIntegerField(verbose_name="Очки", default=0)
 
@@ -220,9 +211,9 @@ class GameParticipant(models.Model):
         joined_at: Дата и время присоединения к игре.
     """
 
-    game = models.ForeignKey(QuizGame, on_delete=models.CASCADE)
-    player = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    joined_at = models.DateTimeField(auto_now_add=True)
+    game = models.ForeignKey(QuizGame, on_delete=models.CASCADE, verbose_name='Викторина')
+    player = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name='Участник')
+    joined_at = models.DateTimeField(auto_now_add=True, verbose_name='Время присоединения')
 
     class Meta:
         """Мета-настройки модели."""

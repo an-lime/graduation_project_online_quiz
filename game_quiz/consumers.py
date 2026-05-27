@@ -182,11 +182,6 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             'type': 'go_game_page'
         }))
 
-    async def game_aborted(self, event):
-        """Ловим событие отмены игры"""
-
-        await self.send(text_data=json.dumps(event))
-
 
 class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -298,4 +293,9 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps(event))
 
     async def game_ended(self, event):
+        await self.send(text_data=json.dumps(event))
+
+    async def game_aborted(self, event):
+        """Ловим событие отмены игры"""
+
         await self.send(text_data=json.dumps(event))
