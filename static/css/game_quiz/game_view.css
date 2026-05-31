@@ -649,3 +649,10 @@
         color: var(--text-gray);
         font-weight: 600;
     }
+
+@media (max-width: 768px) {
+    .game-header {
+        display: flex;
+        flex-direction: column;
+    }
+}

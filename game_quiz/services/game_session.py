@@ -194,14 +194,14 @@ class GameSession:
 
         state = self.get_state()
         if not state or not state.get('is_running'):
-            logger.error(f"❌ No state or not running for {self.game_code}")
+            logger.error(f"No state or not running for {self.game_code}")
             return None
 
         state['current_idx'] += 1
         logger.info(f"📊 Current index: {state['current_idx']}, Total: {len(state['questions'])}")
 
         if state['current_idx'] >= len(state['questions']):
-            logger.info(f"🏁 All questions answered, ending game")
+            logger.info(f"All questions answered, ending game")
             await self.end_game()
             return None
 
@@ -291,9 +291,8 @@ class GameSession:
             }
         )
 
-        # ✅ ПРОВЕРКА: все ли игроки ответили?
         if self._check_all_answered(state):
-            logger.info(f"✅ All players answered, finishing question early")
+            logger.info(f"All players answered, finishing question early")
             async_to_sync(self._finish_question)()
 
         return {'success': True, 'correct': is_correct}
@@ -417,7 +416,6 @@ class GameSession:
         except Exception as e:
             logger.error(f"Warning: Failed to save results: {e}")
 
-        # ✅ ОТПРАВЛЯЕМ question_ended ВСЕГДА (даже если БД упала)
         question = state['questions'][state['current_idx']]
         is_last = state['current_idx'] == len(state['questions']) - 1
 
@@ -615,21 +613,21 @@ class GameSession:
             # 1. Удаляем игрока из словаря
             del state['participants'][vk_id_str]
             self.save_state(state)
-            logger.info(f"🚪 Игрок {vk_id_str} удален из сессии {self.game_code}")
+            logger.info(f"Игрок {vk_id_str} удален из сессии {self.game_code}")
 
             # 2. Ищем, остались ли НЕ ведущие (обычные игроки)
             players_left = [p for p in state['participants'].values() if not p.get('is_host')]
 
             if not players_left:
                 # Никого не осталось — прерываем и удаляем игру даже до старта!
-                logger.info(f"🛑 Все игроки покинули игру {self.game_code}. Отмена игры.")
+                logger.info(f"Все игроки покинули игру {self.game_code}. Отмена игры.")
                 await self._abort_game()
                 return True
 
             # 3. Если идет вопрос (И игра уже была запущена), проверяем таймер
             if state.get('is_running') and state.get('question_active'):
                 if self._check_all_answered(state):
-                    logger.info(f"✅ Вышедший игрок был последним неответившим. Досрочно завершаем вопрос.")
+                    logger.info(f"Вышедший игрок был последним неответившим. Досрочно завершаем вопрос.")
                     await self._finish_question()
 
             return True

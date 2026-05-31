@@ -34,7 +34,6 @@ class MainViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'main/index.html')
-        # Контекст 'active_game' должен быть пустым
         self.assertIsNone(response.context.get('active_game'))
 
     def test_index_page_authenticated_with_active_game(self):

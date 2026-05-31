@@ -134,7 +134,7 @@ def profile_edit(request):
 
     # 1. Валидация логина
     if len(new_username) < 3:
-        error_msg = '❌ Логин должен содержать минимум 3 символа'
+        error_msg = 'Логин должен содержать минимум 3 символа'
         if is_ajax:
             return JsonResponse({'success': False, 'error': error_msg})
         messages.error(request, error_msg)
@@ -143,7 +143,7 @@ def profile_edit(request):
     # 2. Проверка уникальности логина
     if new_username != user.username:
         if User.objects.filter(username=new_username).exists():
-            error_msg = '❌ Этот логин уже занят'
+            error_msg = 'Этот логин уже занят'
             if is_ajax:
                 return JsonResponse({'success': False, 'error': error_msg})
             messages.error(request, error_msg)
@@ -156,7 +156,7 @@ def profile_edit(request):
 
         # Если email изменился, но не подтвержден кодом
         if not is_verified or verified_email != new_email:
-            error_msg = '⚠️ Email не подтвержден! Введите код из письма.'
+            error_msg = 'Email не подтвержден! Введите код из письма.'
             if is_ajax:
                 return JsonResponse({'success': False, 'error': error_msg})
             messages.warning(request, error_msg)
@@ -164,7 +164,7 @@ def profile_edit(request):
 
         # Уникальность Email
         if User.objects.filter(email=new_email).exclude(id=user.id).exists():
-            error_msg = '❌ Этот Email уже используется другим аккаунтом'
+            error_msg = 'Этот Email уже используется другим аккаунтом'
             if is_ajax:
                 return JsonResponse({'success': False, 'error': error_msg})
             messages.error(request, error_msg)
@@ -182,12 +182,12 @@ def profile_edit(request):
         request.session.pop('is_email_verified', None)
         request.session.pop('verified_email', None)
 
-        success_msg = '✅ Профиль успешно обновлён!'
+        success_msg = 'Профиль успешно обновлён!'
         if is_ajax:
             return JsonResponse({'success': True, 'message': success_msg})
         messages.success(request, success_msg)
     except Exception as e:
-        error_msg = f'❌ Ошибка сохранения: {str(e)}'
+        error_msg = f'Ошибка сохранения: {str(e)}'
         if is_ajax:
             return JsonResponse({'success': False, 'error': error_msg})
         messages.error(request, error_msg)
@@ -231,15 +231,15 @@ def password_change(request):
     new_password2 = request.POST.get('new_password2')
 
     if not user.check_password(current_password):
-        messages.error(request, '❌ Неверный текущий пароль')
+        messages.error(request, 'Неверный текущий пароль')
         return redirect(reverse('users:profile') + '#password')
 
     if new_password1 != new_password2:
-        messages.error(request, '❌ Новые пароли не совпадают')
+        messages.error(request, 'Новые пароли не совпадают')
         return redirect(reverse('users:profile') + '#password')
 
     if len(new_password1) < 8:
-        messages.error(request, '❌ Пароль должен быть не менее 8 символов')
+        messages.error(request, 'Пароль должен быть не менее 8 символов')
         return redirect(reverse('users:profile') + '#password')
 
     user.set_password(new_password1)
@@ -270,7 +270,6 @@ def send_verify_code(request):
         JSON-ответ с результатом операции (success/error).
     """
 
-    # Проверка кулдауна (60 секунд) через таймстампы
     last_send = request.session.get('last_code_send_time')
     if last_send and timezone.now().timestamp() - last_send < 60:
         return JsonResponse({'success': False, 'error': 'Подождите 60 секунд перед отправкой нового кода'})

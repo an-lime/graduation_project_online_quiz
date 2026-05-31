@@ -78,7 +78,6 @@ class GameQuizViewsTest(TestCase):
         # Очищаем все активные игры пользователя, чтобы они не блокировали создание
         QuizGame.objects.filter(owner=self.user).delete()
 
-        # 👇 ДОБАВЛЕНО ПОЛЕ 'game_code', так как твой views.py строго требует 4 символа
         payload = {
             'quiz_set_id': self.q_set.id,
             'game_name': 'Тест AJAX',
@@ -91,7 +90,6 @@ class GameQuizViewsTest(TestCase):
         )
         data = response.json()
 
-        # Если тест упадет, он выведет точную ошибку из views.py
         self.assertTrue(data.get('success', False), msg=f"Ошибка создания игры: {data.get('error')}")
         self.assertIn('game_code', data)
         self.assertTrue(QuizGame.objects.filter(game_code=data['game_code']).exists())
@@ -104,7 +102,6 @@ class GameQuizViewsTest(TestCase):
             game_code=QuizGame.generate_unique_code()
         )
 
-        # 👇 Также добавляем 'game_code' сюда для идеальной чистоты запроса
         payload = {
             'quiz_set_id': self.q_set.id,
             'game_name': 'Вторая игра',
@@ -133,7 +130,6 @@ class GameQuizViewsTest(TestCase):
 
     @patch('game_quiz.views.redis_client')
     def test_delete_game_ajax(self, mock_redis):
-        # Убрали мок channel_layer, чтобы async_to_sync не падал!
         game = QuizGame.objects.create(
             owner=self.user,
             question_set=self.q_set,
@@ -156,7 +152,6 @@ class GameQuizViewsTest(TestCase):
         )
         response = self.client.get(reverse('game_quiz:game_view', args=[game.game_code]))
 
-        # Смягчили тест: принимаем и редирект (302), и обычную загрузку (200)
         self.assertIn(response.status_code, [200, 302], "Ожидался код 200 или 302")
 
     def test_api_answer_invalid_game(self):
@@ -193,7 +188,6 @@ class GameSessionServiceTest(TestCase):
 
         session.save_state({"is_running": False})
 
-        # Проверяем вызов ЛЮБОГО метода сохранения (set или setex)
         save_called = any(call[0] in ['set', 'setex'] for call in mock_redis.method_calls)
         self.assertTrue(save_called, "Метод сохранения в Redis (set или setex) не был вызван")
 

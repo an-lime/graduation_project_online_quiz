@@ -415,7 +415,7 @@ def game_view(request, game_code):
         'game': game,
         'game_code': game_code,
         'is_host': request.user == game.owner,
-        'participants': participants,  # ✅ Передаём в контекст
+        'participants': participants,
     })
 
 
@@ -526,7 +526,7 @@ def delete_game_ajax(request, code):
                         vk.method("messages.send", {
                             "peer_id": vk_id,
                             "random_id": generate_event_random_id(),
-                            "message": f"🚫 Игра «{game_name}» была досрочно отменена ведущим.",
+                            "message": f"Игра «{game_name}» была досрочно отменена ведущим.",
                             "keyboard": create_main_menu_keyboard()
                         })
 
@@ -534,7 +534,7 @@ def delete_game_ajax(request, code):
                             'https://api.vk.com/method/messages.send',
                             data={
                                 'peer_id': vk_id,
-                                'message': f"🚫 Игра «{game_name}» была досрочно отменена ведущим.",
+                                'message': f"Игра «{game_name}» была досрочно отменена ведущим.",
                                 'random_id': 0,
                                 'access_token': bot_token,
                                 'v': '5.199'

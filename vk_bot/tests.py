@@ -83,11 +83,10 @@ class VkBotDbUtilsTest(TestCase):
         user.profile.save()
 
         q_set = QuizQuestionSet.objects.create(name="Тестовый набор", owner=user)
-        # Создаем две РАЗНЫЕ игры
+        # Создаем две разные игры
         game1 = QuizGame.objects.create(owner=user, question_set=q_set, name="Game 1", game_code="AAAA")
         game2 = QuizGame.objects.create(owner=user, question_set=q_set, name="Game 2", game_code="BBBB")
 
-        # Теперь уникальность не нарушается
         GameResult.objects.create(game=game1, player=user, score=100)
         GameResult.objects.create(game=game2, player=user, score=50)
 
@@ -110,8 +109,6 @@ class VkBotStatesTest(TestCase):
 
         async_to_sync(set_state)(vk_id, UserState.WAITING_FOR_CODE)
 
-        # Исправление: проверяем, что был вызван ЛЮБОЙ метод сохранения
-        # (часто боты используют redis.set вместо setex)
         save_called = any(call[0] in ['set', 'setex'] for call in mock_redis.method_calls)
         self.assertTrue(save_called, "Метод сохранения в Redis не был вызван")
 
@@ -150,7 +147,6 @@ class VkBotHandlersTest(TestCase):
 
         mock_set_state.assert_called_once_with(777, UserState.WAITING_FOR_CODE)
 
-        # ИСПРАВЛЕНИЕ: Проверяем вызов `edit` ИЛИ `send`, в зависимости от наличия cmid
         message_sent = event.ctx_api.messages.edit.called or event.ctx_api.messages.send.called
         self.assertTrue(message_sent, "Сообщение не было отправлено или отредактировано")
 
@@ -168,6 +164,5 @@ class VkBotHandlersTest(TestCase):
         self.assertIsNotNone(user)
         self.assertEqual(user.first_name, "Иван")
 
-        # ИСПРАВЛЕНИЕ: Проверяем вызов `edit` ИЛИ `send`
         message_sent = event.ctx_api.messages.edit.called or event.ctx_api.messages.send.called
         self.assertTrue(message_sent, "Сообщение об успехе не было отправлено")

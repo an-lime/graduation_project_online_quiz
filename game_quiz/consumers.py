@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class LobbyConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        logger.info(f"🔌 [WS] Connect attempt: {self.scope['path']}")
+        logger.info(f"[WS] Connect attempt: {self.scope['path']}")
 
         try:
             self.game_code = self.scope['url_route']['kwargs']['game_code'].upper()
@@ -25,14 +25,14 @@ class LobbyConsumer(AsyncWebsocketConsumer):
             logger.info(f"🔍 [WS] Checking game: {self.game_code}")
 
             if not await self.check_game_exists():
-                logger.warning(f"❌ [WS] Game {self.game_code} not found")
+                logger.warning(f"[WS] Game {self.game_code} not found")
                 await self.close()
                 return
 
-            logger.info(f"✅ [WS] Adding to group: {self.room_group_name}")
+            logger.info(f"[WS] Adding to group: {self.room_group_name}")
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
-            logger.info(f"🤝 [WS] Accepting connection")
+            logger.info(f"[WS] Accepting connection")
             await self.accept()
 
             participants = await self.get_participants()
@@ -40,18 +40,18 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                 'type': 'participants_list',
                 'participants': participants
             }))
-            logger.info(f"📤 [WS] Sent initial list")
+            logger.info(f"[WS] Sent initial list")
 
         except Exception as e:
             # Ловим любую ошибку, чтобы увидеть её в консоли
-            logger.error(f"💥 [WS] ERROR in connect: {type(e).__name__}: {e}")
+            logger.error(f"[WS] ERROR in connect: {type(e).__name__}: {e}")
             try:
                 await self.close()
             except:
                 pass
 
     async def disconnect(self, close_code):
-        logger.error(f"🔌 [WS] Disconnect: {close_code}")
+        logger.error(f"[WS] Disconnect: {close_code}")
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
@@ -70,7 +70,6 @@ class LobbyConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {'type': 'go_game_page'}
             )
-            # ✅ ОТПРАВЛЯЕМ УВЕДОМЛЕНИЕ ЧЕРЕЗ БОТА
             await self._notify_game_start_via_bot()
 
     @database_sync_to_async
@@ -214,14 +213,14 @@ class GameConsumer(AsyncWebsocketConsumer):
         session = get_game_session(self.game_code)
 
         if action == 'start_game':
-            success = await session.start_game()  # ✅ await
+            success = await session.start_game()
             if success:
-                question_data = await session.next_question()  # ✅ await
+                question_data = await session.next_question()
                 if question_data:
                     await self._send_question(session, question_data)
 
         elif action == 'next_question':
-            question_data = await session.next_question()  # ✅ await
+            question_data = await session.next_question()
             if question_data:
                 await self._send_question(session, question_data)
             else:
