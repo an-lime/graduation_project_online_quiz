@@ -83,6 +83,18 @@
                         </div>
                     {% endif %}
 
+                    {% if messages %}
+                        <div class="profile-messages mb-4">
+                            {% for message in messages %}
+                                <div class="alert-jackbox alert-{{ message.tags }}">
+                                    <span class="alert-icon">{% if message.tags == 'error' %}⚠️{% else %}
+                                        ✅{% endif %}</span>
+                                    <span>{{ message }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
                     <!-- Кнопка входа -->
                     <button type="submit" class="btn btn-primary btn-jackbox btn-full btn-lg mb-3">
                         <span class="btn-icon">🔑</span>
